@@ -59,7 +59,7 @@ export const sidebarItems: NavGroup[] = [
         subItems: [
           { title: "Create New Request", url: "/dashboard/requests/new" },
           { title: "My Requests", url: "/dashboard/requests/mine" },
-          { title: "All Requests", url: "/dashboard/requests/all" },
+          { title: "All Requests", url: "/dashboard/requests" },
         ],
       },
       {
@@ -125,7 +125,7 @@ export const sidebarItems: NavGroup[] = [
         url: "/dashboard/users",
         icon: Users,
         subItems: [
-          { title: "All Users", url: "/dashboard/users/all" },
+          { title: "All Users", url: "/dashboard/users" },
           { title: "Roles & Permissions", url: "/dashboard/users/roles" },
           { title: "Add New User", url: "/dashboard/users/new" },
         ],
