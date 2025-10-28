@@ -1,16 +1,26 @@
 import { baseApi } from "../baseApi";
 import type { User } from "../types";
-import { ChangePasswordRequest, LoginRequest, LoginResponse } from "./types";
+import { ChangePasswordRequest, LoginRequest, LoginResponse, ForgotPasswordResponse } from "./types";
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    login: builder.mutation<LoginResponse, LoginRequest>({
+    login: builder.mutation<LoginResponse, FormData>({
       query: (credentials) => ({
         url: "/auth/login",
         method: "POST",
-        body: credentials,
+        data: credentials,
+        isFormData: true,
+        sendToken: false,
       }),
       invalidatesTags: ["Auth"],
+    }),
+
+    forgotPassword: builder.mutation<ForgotPasswordResponse, { email: string }>({
+      query: (body) => ({
+        url: "/auth/password/forgot",
+        method: "POST",
+        data: body,
+      }),
     }),
 
     logout: builder.mutation<void, void>({
@@ -45,19 +55,13 @@ export const authApi = baseApi.injectEndpoints({
       }),
     }),
 
-    forgotPassword: builder.mutation<void, { email: string }>({
-      query: (body) => ({
-        url: "/auth/forgot-password",
+    resetPassword: builder.mutation<LoginResponse, FormData>({
+      query: (credentials) => ({
+        url: "/auth/password/reset",
         method: "POST",
-        body,
-      }),
-    }),
-
-    resetPassword: builder.mutation<void, { token: string; password: string }>({
-      query: (body) => ({
-        url: "/auth/reset-password",
-        method: "POST",
-        body,
+        data: credentials,
+        isFormData: true,
+        sendToken: false,
       }),
     }),
   }),

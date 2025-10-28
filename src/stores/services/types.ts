@@ -1,3 +1,4 @@
+import { BaseResponse } from "../api/types";
 import { User, UserRole } from "../types";
 
 export interface ApprovalAction {
@@ -10,11 +11,12 @@ export interface LoginRequest {
   password: string;
 }
 
-export interface LoginResponse {
+export type LoginResponse = BaseResponse<{
   user: User;
   token: string;
-  refreshToken: string;
-}
+}>;
+
+export type ForgotPasswordResponse = BaseResponse;
 
 export interface ChangePasswordRequest {
   currentPassword: string;

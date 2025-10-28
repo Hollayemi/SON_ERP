@@ -7,9 +7,11 @@ import { Toaster } from "@/components/ui/sonner";
 import { APP_CONFIG } from "@/config/app-config";
 import { getPreference } from "@/server/server-actions";
 import { PreferencesStoreProvider } from "@/stores/preferences/preferences-provider";
+import { ReduxProvider } from "@/providers/redux-provider";
 import { THEME_MODE_VALUES, THEME_PRESET_VALUES, type ThemePreset, type ThemeMode } from "@/types/preferences/theme";
 
 import "./globals.css";
+import { trackSynchronousRequestDataAccessInDev } from "next/dist/server/app-render/dynamic-rendering";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,10 +32,35 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       suppressHydrationWarning
     >
       <body className={`${inter.className} min-h-screen antialiased`}>
-        <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
-          {children}
-          <Toaster />
-        </PreferencesStoreProvider>
+        <ReduxProvider>
+          <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
+            {children}
+            <Toaster
+              toastOptions={
+                {
+                  error: {
+                    classNames: {
+                      toast: "border border-red-500 bg-red-50 text-red-700 font-medium",
+                      title: "text-red-700",
+                      description: "text-red-600",
+                      actionButton: "bg-red-100 text-red-800 hover:bg-red-200",
+                      cancelButton: "text-red-500",
+                    },
+                  },
+                  success: {
+                    classNames: {
+                      toast: "border border-green-500 bg-green-50 text-green-700 font-medium",
+                      title: "text-green-700",
+                      description: "text-green-600",
+                      actionButton: "bg-green-100 text-green-800 hover:bg-green-200",
+                      cancelButton: "text-green-500",
+                    },
+                  },
+                } as any
+              }
+            />
+          </PreferencesStoreProvider>
+        </ReduxProvider>
       </body>
     </html>
   );
