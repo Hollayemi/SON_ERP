@@ -97,18 +97,13 @@ export default function ForgotPasswordPage() {
                 <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
                 <AlertTitle className="text-green-800 dark:text-green-200">Email Sent Successfully</AlertTitle>
                 <AlertDescription className="text-green-700 dark:text-green-300">
-                  Please check your email inbox and spam folder for the password reset link.
-                  The link will expire in 60 minutes.
+                  Please check your email inbox and spam folder for the password reset link. The link will expire in 60
+                  minutes.
                 </AlertDescription>
               </Alert>
 
               <div className="space-y-3">
-                <Button
-                  className="w-full"
-                  variant="outline"
-                  onClick={handleSendAnother}
-                  type="button"
-                >
+                <Button className="w-full" variant="outline" onClick={handleSendAnother} type="button">
                   Send Another Email
                 </Button>
 
@@ -145,11 +140,7 @@ export default function ForgotPasswordPage() {
                     )}
                   />
 
-                  <Button
-                    className="w-full"
-                    type="submit"
-                    disabled={isLoading}
-                  >
+                  <Button className="w-full" type="submit" disabled={isLoading}>
                     {isLoading ? "Sending..." : "Send Reset Link"}
                   </Button>
                 </form>

@@ -1,3 +1,4 @@
+import { BaseResponse } from "../api/types";
 import { baseApi } from "../baseApi";
 import type { User, UserRole } from "../types";
 import { CreateUserInput, UpdateUserInput } from "./types";
@@ -17,7 +18,7 @@ export const usersApi = baseApi.injectEndpoints({
       providesTags: (result, error, id) => [{ type: "Users", id }],
     }),
 
-    createUser: builder.mutation<User, CreateUserInput>({
+    createUser: builder.mutation<BaseResponse<User>, FormData>({
       query: (body) => ({
         url: "/users",
         method: "POST",

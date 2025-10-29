@@ -11,8 +11,9 @@ interface UiState {
 }
 
 const initialState: UiState = {
-  theme: (localStorage.getItem("theme") as "light" | "dark") || "light",
-  sidebarCollapsed: localStorage.getItem("sidebarCollapsed") === "true",
+  theme:
+    typeof window !== "undefined" ? (window.localStorage.getItem("theme") as "light" | "dark") || "light" : "light",
+  sidebarCollapsed: typeof window !== "undefined" ? window.localStorage.getItem("sidebarCollapsed") === "true" : false,
   notificationsPanelOpen: false,
   currentPage: "dashboard",
   breadcrumbs: [],

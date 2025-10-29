@@ -6,15 +6,15 @@ import { store } from "@/stores";
 import { hydrateAuth } from "@/stores/slices/authSlice";
 
 export function ReduxProvider({ children }: { children: React.ReactNode }) {
-    const initialized = useRef(false);
+  const initialized = useRef(false);
 
-    useEffect(() => {
-        if (!initialized.current) {
-            // Hydrate auth state from localStorage on client side
-            store.dispatch(hydrateAuth());
-            initialized.current = true;
-        }
-    }, []);
+  useEffect(() => {
+    if (!initialized.current) {
+      // Hydrate auth state from localStorage on client side
+      store.dispatch(hydrateAuth());
+      initialized.current = true;
+    }
+  }, []);
 
-    return <Provider store={store}>{children}</Provider>;
+  return <Provider store={store}>{children}</Provider>;
 }

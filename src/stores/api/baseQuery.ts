@@ -54,51 +54,69 @@ const buildUrl = (urlPath: string, params?: Record<string, any>) => {
 };
 
 export const fetchBaseQueryWithReauth: BaseQueryFn<RequestConfig, unknown, BaseError> = async (args) => {
-  const { url, method = "GET", data, params, headers = {}, skipSuccessToast = false, isFormData = false, sendToken = true } = args;
+  const {
+    url,
+    method = "GET",
+    data,
+    params,
+    headers = {},
+    skipSuccessToast = false,
+    isFormData = false,
+    sendToken = true,
+  } = args;
 
   const makeRequest = async (token?: string) => {
-    const fullUrl = buildUrl(url, params);
-    const mergedHeaders: Record<string, string> = {
-      ...(isFormData ? {} : { "Content-Type": "application/json" }),
-      ...headers,
-      ...(token && sendToken ? { Authorization: `Bearer ${token}` } : {}),
-    };
+    try {
+      const fullUrl = buildUrl(url, params);
+      const mergedHeaders: Record<string, string> = {
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
+        ...headers,
+        ...(token && sendToken ? { Authorization: `Bearer ${token}` } : {}),
+      };
 
+      const options: RequestInit = {
+        method,
+        headers: mergedHeaders,
+        credentials: "include",
+      };
 
-    const options: RequestInit = {
-      method,
-      headers: mergedHeaders,
-      // credentials: "include",
-    };
+      if (method !== "GET" && method !== "HEAD" && data !== undefined) {
+        options.body = isFormData ? data : JSON.stringify(data);
+      }
 
-    if (method !== "GET" && method !== "HEAD" && data !== undefined) {
-      options.body = isFormData ? data : JSON.stringify(data);
+      console.log({ fullUrl, options });
+      const res = await fetch(fullUrl, options).then((response) => {
+        console.log("here");
+        return response;
+      }).catch((error) => {
+        console.error("Fetch failed:", error);
+        throw error;
+      });
+
+      // console.log({ res: await res.json() })
+      const contentType = res.headers.get("content-type");
+      const responseData = contentType?.includes("application/json") ? await res.json() : await res.text();
+
+      console.log({ responseData });
+
+      return { res, responseData };
+    }catch (error) {
+      console.error("Fetch error:", error);
+      throw error;
     }
-
-    console.log({ fullUrl, options })
-    const res = await fetch(fullUrl, options);
-    console.log("here")
-
-    // console.log({ res: await res.json() })
-    const contentType = res.headers.get("content-type");
-    const responseData = contentType?.includes("application/json") ? await res.json() : await res.text();
-
-    console.log({responseData})
-
-    return { res, responseData };
   };
 
   try {
     const token = getAccessToken() || undefined;
     const attempt = await makeRequest(token);
 
-    // Check if response is ok based on HTTP status
     if (attempt.res.ok) {
       const body = attempt.responseData as any;
 
-      // Show success toast if enabled and message exists
       if (!skipSuccessToast && body?.success && body?.message && body.message !== "success") {
-        toast.success(body.message);
+        toast[body?.success ? "success" : "error"](body.message, {
+          position: "top-right",
+        });
       }
 
       return { data: attempt.responseData };
@@ -107,10 +125,12 @@ export const fetchBaseQueryWithReauth: BaseQueryFn<RequestConfig, unknown, BaseE
     // Handle error responses
     const errorBody = attempt.responseData as any;
     const errorMessage = errorBody?.message || attempt.res.statusText || "Request failed";
-    console.log({ errorMessage })
+    console.log({ errorMessage });
 
     // Show error toast
-    toast.error(errorMessage);
+    toast.error(errorMessage, {
+      position: "top-right",
+    });
 
     // If 401, clear auth data
     if (attempt.res.status === 401) {
@@ -126,7 +146,9 @@ export const fetchBaseQueryWithReauth: BaseQueryFn<RequestConfig, unknown, BaseE
     };
   } catch (err: any) {
     console.error("Base query error", err);
-    toast.error(err?.message || "Network error - check your connection");
+    toast.error(err?.message || "Network error - check your connection", {
+      position: "top-right",
+    });
     return {
       error: {
         status: err?.status || 0,

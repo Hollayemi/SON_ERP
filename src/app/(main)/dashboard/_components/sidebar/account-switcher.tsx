@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn, getInitials } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { logout } from "@/stores/slices/authSlice";
+import { useDispatch } from "react-redux";
 
 export function AccountSwitcher({
   users,
@@ -29,6 +31,7 @@ export function AccountSwitcher({
 }) {
   const [activeUser, setActiveUser] = useState(users[0]);
   const router = useRouter();
+  const dispatch = useDispatch();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -72,7 +75,7 @@ export function AccountSwitcher({
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => router.push("/auth/login")}>
+        <DropdownMenuItem onClick={() => dispatch(logout())}>
           <LogOut />
           Log out
         </DropdownMenuItem>

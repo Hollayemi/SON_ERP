@@ -2,7 +2,9 @@
 
 export const server =
   process.env.NEXT_PUBLIC_API_URL ||
-  (process.env.NODE_ENV === "production" ? "https://erp.zojiedatahub.com/api/v1" : "https://erp.zojiedatahub.com/api/v1");
+  (process.env.NODE_ENV === "production"
+    ? "https://erp.zojiedatahub.com/api/v1"
+    : "https://erp.zojiedatahub.com/api/v1");
 
 let accessTokenCache: string | null = null;
 const ACCESS_TOKEN_KEY = "accessToken";

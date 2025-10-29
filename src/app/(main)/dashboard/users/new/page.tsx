@@ -3,32 +3,40 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, LoaderIcon, Save, Upload, X } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { useCreateUserMutation } from "@/stores/services/usersApi";
+import { useGetDepartmentsQuery } from "@/stores/services/core";
+
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 const formSchema = z
   .object({
-    firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
-    lastName: z.string().min(2, { message: "Last name must be at least 2 characters." }),
+    first_name: z.string().min(2, { message: "First name must be at least 2 characters." }),
+    last_name: z.string().min(2, { message: "Last name must be at least 2 characters." }),
     email: z.string().email({ message: "Please enter a valid email address." }),
-    phone: z.string().min(10, { message: "Please enter a valid phone number." }),
-    role: z.string().min(1, { message: "Please select a role." }),
-    department: z.string().min(1, { message: "Please select a department." }),
-    address: z.string().min(5, { message: "Address must be at least 5 characters." }),
-    bio: z.string().optional(),
+    phone: z.string().min(10, { message: "Please enter a valid phone number." }).optional(),
     password: z.string().min(8, { message: "Password must be at least 8 characters." }),
     confirmPassword: z.string().min(8, { message: "Please confirm your password." }),
+    department_id: z.string().min(1, { message: "Please select a department." }),
+    employee_id: z.string().min(1, { message: "Employee ID is required." }),
+    user_access: z.array(z.string()).min(1, { message: "Select at least one access role." }),
+    address: z.string().min(5, { message: "Address must be at least 5 characters." }),
+    bio: z.string().optional(),
+    image: z.any().optional(),
     isActive: z.boolean().default(true),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -36,39 +44,113 @@ const formSchema = z
     path: ["confirmPassword"],
   });
 
+// Mock data - replace with actual API calls
+const departments = [
+  { id: "1", name: "Engineering" },
+  { id: "2", name: "Finance" },
+  { id: "3", name: "Human Resources" },
+  { id: "4", name: "Operations" },
+  { id: "5", name: "Procurement" },
+  { id: "6", name: "IT" },
+  { id: "7", name: "Administration" },
+];
+
+const userAccessRoles = ["Employee", "Manager", "Admin", "Checker", "Reviewer", "Approver", "Procurement", "Finance"];
+
 export default function CreateUserPage() {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createUser, { isLoading }] = useCreateUserMutation();
+  const { data: departments, isLoading: departmentLoading } = useGetDepartmentsQuery();
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
+      first_name: "",
+      last_name: "",
       email: "",
       phone: "",
-      role: "",
-      department: "",
-      address: "",
-      bio: "",
       password: "",
       confirmPassword: "",
+      department_id: "",
+      employee_id: "",
+      user_access: [],
+      address: "",
+      bio: "",
       isActive: true,
     },
   });
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      toast.error("Invalid file type. Please upload a JPEG, PNG, or WebP image.");
+      return;
+    }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File is too large. Maximum size is 2MB.");
+      return;
+    }
+
+    setSelectedFile(file);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => {
+    setSelectedFile(null);
+    setImagePreview(null);
+    form.setValue("image", undefined);
+  };
+
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Append all form fields
+      formData.append("first_name", data.first_name);
+      formData.append("last_name", data.last_name);
+      formData.append("email", data.email);
+      formData.append("password", data.password);
+      formData.append("department_id", data.department_id);
+      formData.append("employee_id", data.employee_id);
 
-    toast.success("User created successfully!", {
-      description: `${data.firstName} ${data.lastName} has been added to the system.`,
-    });
+      // Append optional fields
+      if (data.phone) {
+        formData.append("phone", data.phone);
+      }
 
-    setIsSubmitting(false);
-    router.push("/dashboard/users");
+      // Append user access as JSON array
+      formData.append("user_access", JSON.stringify(data.user_access));
+
+      // Append image if selected
+      if (selectedFile) {
+        formData.append("image", selectedFile);
+      }
+
+      const response = await createUser(formData).unwrap();
+
+      if (response.success) {
+        toast.success(response.message || "User created successfully!", {
+          description: `${data.first_name} ${data.last_name} has been added to the system.`,
+        });
+        router.push("/dashboard/users");
+      }
+    } catch (error: any) {
+      console.error("Create user error:", error);
+      toast.error(error?.data?.message || "Failed to create user. Please try again.");
+    }
   };
 
   return (
@@ -84,16 +166,61 @@ export default function CreateUserPage() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Profile Image Section */}
           <Card className="shadow-xs">
             <CardHeader>
-              <CardTitle>Create New User</CardTitle>
-              <CardDescription>Add a new user to the system with their basic information and role.</CardDescription>
+              <CardTitle>Profile Image</CardTitle>
+              <CardDescription>Upload a profile picture for the user (optional).</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-6">
+                <div className="relative">
+                  {imagePreview ? (
+                    <>
+                      <Image
+                        src={imagePreview}
+                        alt="Profile preview"
+                        width={96}
+                        height={96}
+                        className="rounded-full object-cover"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                        onClick={removeImage}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="bg-muted flex h-24 w-24 items-center justify-center rounded-full">
+                      <Upload className="text-muted-foreground h-8 w-8" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <Input type="file" accept="image/*" onChange={handleImageChange} className="cursor-pointer" />
+                  <FormDescription className="!mt-3 text-xs">
+                    Recommended: Square image, 2MB max. Supported formats: JPEG, PNG, WebP.
+                  </FormDescription>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Basic Information Section */}
+          <Card className="shadow-xs">
+            <CardHeader>
+              <CardTitle>Basic Information</CardTitle>
+              <CardDescription>Add the user&rsquo;s personal details and contact information.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-6 sm:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="firstName"
+                  name="first_name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>First Name</FormLabel>
@@ -107,7 +234,7 @@ export default function CreateUserPage() {
 
                 <FormField
                   control={form.control}
-                  name="lastName"
+                  name="last_name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Last Name</FormLabel>
@@ -126,7 +253,7 @@ export default function CreateUserPage() {
                     <FormItem>
                       <FormLabel>Email Address</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="Aliyu.usman@son.com.ng" {...field} />
+                        <Input type="email" placeholder="aliyu.usman@son.com.ng" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -149,26 +276,13 @@ export default function CreateUserPage() {
 
                 <FormField
                   control={form.control}
-                  name="role"
+                  name="employee_id"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Role</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a role" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="initiator">Initiator</SelectItem>
-                          <SelectItem value="checker">Checker</SelectItem>
-                          <SelectItem value="reviewer">Reviewer</SelectItem>
-                          <SelectItem value="approver">Approver</SelectItem>
-                          <SelectItem value="procurement">Procurement Officer</SelectItem>
-                          <SelectItem value="finance">Finance/Admin</SelectItem>
-                          <SelectItem value="admin">Administrator</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>Employee ID</FormLabel>
+                      <FormControl>
+                        <Input placeholder="EMP001" {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -176,7 +290,7 @@ export default function CreateUserPage() {
 
                 <FormField
                   control={form.control}
-                  name="department"
+                  name="department_id"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Department</FormLabel>
@@ -187,13 +301,15 @@ export default function CreateUserPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="engineering">Engineering</SelectItem>
-                          <SelectItem value="finance">Finance</SelectItem>
-                          <SelectItem value="hr">Human Resources</SelectItem>
-                          <SelectItem value="operations">Operations</SelectItem>
-                          <SelectItem value="procurement">Procurement</SelectItem>
-                          <SelectItem value="it">IT</SelectItem>
-                          <SelectItem value="admin">Administration</SelectItem>
+                          {departmentLoading ? (
+                            <LoaderIcon className="animate-spin" />
+                          ) : (
+                            departments?.data?.map((dept: any) => (
+                              <SelectItem key={dept.id} value={dept.id}>
+                                {dept.name}
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -228,7 +344,9 @@ export default function CreateUserPage() {
                           {...field}
                         />
                       </FormControl>
-                          <FormDescription>A short description about the user&rsquo;s role and responsibilities.</FormDescription>
+                      <FormDescription>
+                        A short description about the user&rsquo;s role and responsibilities.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -237,10 +355,56 @@ export default function CreateUserPage() {
             </CardContent>
           </Card>
 
+          {/* User Access & Roles Section */}
+          <Card className="shadow-xs">
+            <CardHeader>
+              <CardTitle>User Access & Roles</CardTitle>
+              <CardDescription>Select the access roles and permissions for this user.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FormField
+                control={form.control}
+                name="user_access"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Access Roles</FormLabel>
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                      {userAccessRoles.map((role) => (
+                        <div key={role} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={role}
+                            checked={field.value?.includes(role)}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              const newValue = checked
+                                ? [...field.value, role]
+                                : field.value.filter((r: string) => r !== role);
+                              field.onChange(newValue);
+                            }}
+                            className="text-primary focus:ring-primary h-4 w-4 rounded border-gray-300"
+                          />
+                          <label
+                            htmlFor={role}
+                            className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {role}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Account Security Section */}
           <Card className="shadow-xs">
             <CardHeader>
               <CardTitle>Account Security</CardTitle>
-                          <CardDescription>Set up the user&rsquo;s login credentials and account status.</CardDescription>
+              <CardDescription>Set up the user&rsquo;s login credentials and account status.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-6 sm:grid-cols-2">
@@ -298,8 +462,8 @@ export default function CreateUserPage() {
                 Cancel
               </Button>
             </Link>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? (
                 <>Creating...</>
               ) : (
                 <>

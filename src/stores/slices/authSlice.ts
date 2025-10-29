@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { User } from "../api/types";
+import { toast } from "sonner";
 
 interface AuthState {
   user: User | null;
@@ -48,6 +49,12 @@ const authSlice = createSlice({
 
       if (typeof window !== "undefined") {
         localStorage.removeItem("accessToken");
+      }
+
+      toast.success("Logged Out Successfully");
+
+      if (typeof window !== "undefined") {
+        window.location.href = "/auth/login";
       }
     },
 

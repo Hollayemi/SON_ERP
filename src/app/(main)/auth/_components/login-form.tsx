@@ -45,10 +45,8 @@ export function LoginForm() {
         if (data.remember) {
           localStorage.setItem("rememberMe", "true");
         }
-        
+
         router.push("/dashboard");
-      } else {
-        toast.error(response.message || "Login failed");
       }
     } catch (error: any) {
       console.error("Login error:", error);

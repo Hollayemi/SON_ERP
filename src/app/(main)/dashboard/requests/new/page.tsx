@@ -262,25 +262,15 @@ export default function CreateNewRequestPage() {
                     <p className="text-sm font-medium">Uploaded Files ({files.length})</p>
                     <div className="space-y-2">
                       {files.map((file, index) => (
-                        <div
-                          key={index}
-                          className="bg-muted flex items-center justify-between rounded-lg p-3"
-                        >
+                        <div key={index} className="bg-muted flex items-center justify-between rounded-lg p-3">
                           <div className="flex items-center gap-3">
                             <FileText className="text-muted-foreground size-5" />
                             <div>
                               <p className="text-sm font-medium">{file.name}</p>
-                              <p className="text-muted-foreground text-xs">
-                                {(file.size / 1024).toFixed(2)} KB
-                              </p>
+                              <p className="text-muted-foreground text-xs">{(file.size / 1024).toFixed(2)} KB</p>
                             </div>
                           </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() => removeFile(index)}
-                          >
+                          <Button type="button" variant="ghost" size="icon-sm" onClick={() => removeFile(index)}>
                             <X className="size-4" />
                           </Button>
                         </div>
@@ -294,12 +284,7 @@ export default function CreateNewRequestPage() {
                 <Button type="submit" disabled={isLoading} className="min-w-32">
                   {isLoading ? "Submitting..." : "Submit Request"}
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.back()}
-                  disabled={isLoading}
-                >
+                <Button type="button" variant="outline" onClick={() => router.back()} disabled={isLoading}>
                   Cancel
                 </Button>
               </div>

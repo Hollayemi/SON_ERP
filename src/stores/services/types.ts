@@ -30,14 +30,15 @@ export interface UploadDocumentInput {
 }
 
 export interface CreateUserInput {
-  username: string;
+  first_name: string;
+  last_name: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  role: UserRole;
-  department: string;
-  phone?: string;
   password: string;
+  department_id: string;
+  employee_id: string;
+  image: any;
+  user_access: string;
+  phone?: string;
 }
 
 export interface UpdateUserInput extends Partial<Omit<CreateUserInput, "password">> {

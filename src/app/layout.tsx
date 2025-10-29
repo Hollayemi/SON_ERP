@@ -8,10 +8,10 @@ import { APP_CONFIG } from "@/config/app-config";
 import { getPreference } from "@/server/server-actions";
 import { PreferencesStoreProvider } from "@/stores/preferences/preferences-provider";
 import { ReduxProvider } from "@/providers/redux-provider";
+import { AuthProvider } from "@/providers/auth-provider";
 import { THEME_MODE_VALUES, THEME_PRESET_VALUES, type ThemePreset, type ThemeMode } from "@/types/preferences/theme";
 
 import "./globals.css";
-import { trackSynchronousRequestDataAccessInDev } from "next/dist/server/app-render/dynamic-rendering";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -34,10 +34,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body className={`${inter.className} min-h-screen antialiased`}>
         <ReduxProvider>
           <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
-            {children}
+            <AuthProvider>{children}</AuthProvider>
             <Toaster
               toastOptions={
                 {
+                  position: "top-right",
                   error: {
                     classNames: {
                       toast: "border border-red-500 bg-red-50 text-red-700 font-medium",
