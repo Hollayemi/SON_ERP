@@ -50,7 +50,6 @@ export function LoginForm() {
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      toast.error(error?.data?.message || "An error occurred during login");
     }
   };
 

@@ -66,92 +66,123 @@ export const fetchBaseQueryWithReauth: BaseQueryFn<RequestConfig, unknown, BaseE
   } = args;
 
   const makeRequest = async (token?: string) => {
-    try {
-      const fullUrl = buildUrl(url, params);
-      const mergedHeaders: Record<string, string> = {
-        ...(isFormData ? {} : { "Content-Type": "application/json" }),
+    const fullUrl = buildUrl(url, params);
+
+    // Build headers - DON'T set headers for FormData, let browser do it
+    const mergedHeaders: HeadersInit = isFormData
+      ? {
+        ...headers,
+        ...(token && sendToken ? { Authorization: `Bearer ${token}` } : {}),
+      }
+      : {
+        "Content-Type": "application/json",
         ...headers,
         ...(token && sendToken ? { Authorization: `Bearer ${token}` } : {}),
       };
 
-      const options: RequestInit = {
-        method,
-        headers: mergedHeaders,
-        credentials: "include",
-      };
+    const options: RequestInit = {
+      method,
+      headers: mergedHeaders,
+      credentials: "include",
+    };
 
-      if (method !== "GET" && method !== "HEAD" && data !== undefined) {
-        options.body = isFormData ? data : JSON.stringify(data);
-      }
+    if (method !== "GET" && method !== "HEAD" && data !== undefined) {
+      options.body = isFormData ? data : JSON.stringify(data);
+    }
 
-      console.log({ fullUrl, options });
-      const res = await fetch(fullUrl, options).then((response) => {
-        console.log("here");
-        return response;
-      }).catch((error) => {
-        console.error("Fetch failed:", error);
-        throw error;
+    console.log("🚀 API Request:", {
+      url: fullUrl,
+      method,
+      headers: mergedHeaders,
+      hasBody: !!options.body,
+    });
+
+    try {
+      const response = await fetch(fullUrl, options);
+
+      console.log("📥 API Response:", {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
       });
 
-      // console.log({ res: await res.json() })
-      const contentType = res.headers.get("content-type");
-      const responseData = contentType?.includes("application/json") ? await res.json() : await res.text();
+      // Parse response
+      const contentType = response.headers.get("content-type");
+      let responseData: any;
 
-      console.log({ responseData });
+      if (contentType?.includes("application/json")) {
+        responseData = await response.json();
+      } else {
+        responseData = await response.text();
+      }
 
-      return { res, responseData };
-    }catch (error) {
-      console.error("Fetch error:", error);
+      return { response, responseData };
+    } catch (error) {
+      console.error("❌ Fetch Error:", error);
       throw error;
     }
   };
 
   try {
     const token = getAccessToken() || undefined;
-    const attempt = await makeRequest(token);
+    const { response, responseData } = await makeRequest(token);
 
-    if (attempt.res.ok) {
-      const body = attempt.responseData as any;
+    // Handle successful response
+    
+    if (response.ok) {
+      const body = responseData as any;
 
+      // Show success toast if applicable
       if (!skipSuccessToast && body?.success && body?.message && body.message !== "success") {
-        toast[body?.success ? "success" : "error"](body.message, {
+        toast.success(body.message, {
           position: "top-right",
         });
       }
 
-      return { data: attempt.responseData };
+      return { data: responseData };
     }
 
     // Handle error responses
-    const errorBody = attempt.responseData as any;
-    const errorMessage = errorBody?.message || attempt.res.statusText || "Request failed";
-    console.log({ errorMessage });
+    const errorBody = responseData as any;
+    const errorMessage = errorBody?.message || response.statusText || "Request failed";
+    
+    console.error("❌ API Error:", {
+      status: response.status,
+      message: errorMessage,
+      body: errorBody,
+    });
 
     // Show error toast
     toast.error(errorMessage, {
       position: "top-right",
     });
 
-    // If 401, clear auth data
-    if (attempt.res.status === 401) {
+    // If 401, clear auth data and redirect to login
+    if (response.status === 401) {
       clearAuthData();
+      if (typeof window !== "undefined") {
+        window.location.href = "/auth/login";
+      }
     }
 
     return {
       error: {
-        status: attempt.res.status,
+        status: response.status,
         data: errorBody,
         message: errorMessage,
       },
     };
   } catch (err: any) {
-    console.error("Base query error", err);
-    toast.error(err?.message || "Network error - check your connection", {
+    console.error("💥 Network Error:", err);
+
+    // Show network error toast
+    toast.error(err?.message || "Network error - please check your connection", {
       position: "top-right",
     });
+
     return {
       error: {
-        status: err?.status || 0,
+        status: 0,
         data: { message: err?.message || "Network error" },
         message: err?.message || "Network error",
       },
