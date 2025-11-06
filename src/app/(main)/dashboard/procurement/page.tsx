@@ -13,7 +13,8 @@ import {
     AlertCircle,
     Plus,
     Eye,
-    Download
+    Download,
+    TrendingUp,
 } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -308,11 +309,11 @@ export default function ProcurementPage() {
     });
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="@container/main flex flex-col gap-6">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-semibold tracking-tight">Procurement</h1>
+                    <h1 className="text-2xl font-semibold tracking-tight">Procurement Overview</h1>
                     <p className="text-muted-foreground text-sm">
                         Manage sourcing, vendors, and purchase orders
                     </p>
@@ -328,6 +329,7 @@ export default function ProcurementPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{pendingRequests.filter(r => r.status === "PENDING").length}</div>
+                        <p className="text-muted-foreground text-xs mt-1">Awaiting sourcing</p>
                     </CardContent>
                 </Card>
 
@@ -338,6 +340,7 @@ export default function ProcurementPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{pendingRequests.filter(r => r.status === "IN_PROGRESS").length}</div>
+                        <p className="text-muted-foreground text-xs mt-1">Being processed</p>
                     </CardContent>
                 </Card>
 
@@ -348,6 +351,7 @@ export default function ProcurementPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{vendors.filter(v => v.status === "ACTIVE").length}</div>
+                        <p className="text-muted-foreground text-xs mt-1">Registered suppliers</p>
                     </CardContent>
                 </Card>
 
@@ -358,17 +362,56 @@ export default function ProcurementPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{purchaseOrders.length}</div>
+                        <p className="text-muted-foreground text-xs mt-1">Purchase orders</p>
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Tabs */}
+            {/* Quick Actions */}
+            <div className="grid gap-4 md:grid-cols-3">
+                <Card className="cursor-pointer transition-colors hover:bg-accent" onClick={() => router.push("/dashboard/procurement/pending")}>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Clock className="size-5 text-yellow-500" />
+                            View Pending Requests
+                        </CardTitle>
+                        <CardDescription>
+                            Process approved requests awaiting procurement
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+
+                <Card className="cursor-pointer transition-colors hover:bg-accent" onClick={() => router.push("/dashboard/procurement/vendors")}>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Users className="size-5 text-blue-500" />
+                            Manage Vendors
+                        </CardTitle>
+                        <CardDescription>
+                            View and manage your vendor database
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+
+                <Card className="cursor-pointer transition-colors hover:bg-accent" onClick={() => router.push("/dashboard/procurement/order")}>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <ShoppingCart className="size-5 text-green-500" />
+                            Create Purchase Order
+                        </CardTitle>
+                        <CardDescription>
+                            Generate new PO from approved request
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+            </div>
+
+            {/* Tabs for detailed views */}
             <Tabs defaultValue="pending" className="space-y-4">
                 <TabsList>
                     <TabsTrigger value="pending">Pending Requests</TabsTrigger>
                     <TabsTrigger value="vendors">Vendors</TabsTrigger>
                     <TabsTrigger value="purchase-orders">Purchase Orders</TabsTrigger>
-                    <TabsTrigger value="history">History</TabsTrigger>
                 </TabsList>
 
                 {/* Pending Requests Tab */}
@@ -380,6 +423,9 @@ export default function ProcurementPage() {
                                     <CardTitle>Pending Procurement</CardTitle>
                                     <CardDescription>Requests awaiting sourcing</CardDescription>
                                 </div>
+                                <Button onClick={() => router.push("/dashboard/procurement/pending")}>
+                                    View All
+                                </Button>
                             </div>
                         </CardHeader>
                         <CardContent>
@@ -399,7 +445,7 @@ export default function ProcurementPage() {
                                     <CardTitle>Vendor Database</CardTitle>
                                     <CardDescription>Approved suppliers and their details</CardDescription>
                                 </div>
-                                <Button onClick={() => router.push("/dashboard/procurement/vendors/new")}>
+                                <Button onClick={() => router.push("/dashboard/procurement/vendor/new")}>
                                     <Plus className="mr-2" />
                                     Add Vendor
                                 </Button>
@@ -422,26 +468,14 @@ export default function ProcurementPage() {
                                     <CardTitle>Purchase Orders</CardTitle>
                                     <CardDescription>All generated purchase orders</CardDescription>
                                 </div>
+                                <Button onClick={() => router.push("/dashboard/procurement/purchase-orders")}>
+                                    View All
+                                </Button>
                             </div>
                         </CardHeader>
                         <CardContent>
                             <div className="overflow-hidden rounded-lg border">
                                 <DataTable table={poTable} columns={poColumns} />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* History Tab */}
-                <TabsContent value="history" className="space-y-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Procurement History</CardTitle>
-                            <CardDescription>Track all sourced items and delivery status</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-muted-foreground flex h-40 items-center justify-center">
-                                <p>Procurement history will be displayed here</p>
                             </div>
                         </CardContent>
                     </Card>

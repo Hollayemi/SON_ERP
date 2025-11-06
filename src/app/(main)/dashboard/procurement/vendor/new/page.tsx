@@ -99,7 +99,7 @@ export default function AddVendorPage() {
     };
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="@container/main flex flex-col gap-6">
             {/* Header */}
             <div>
                 <h1 className="text-2xl font-semibold tracking-tight">Add New Vendor</h1>
