@@ -407,8 +407,8 @@ export default function ApprovalDetailPage() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Return for Correction</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This request will be sent back to the initiator for corrections. Please ensure you&lsquo;ve added
-                        comments explaining what needs to be changed.
+                        This request will be sent back to the initiator for corrections. Please ensure you&lsquo;ve
+                        added comments explaining what needs to be changed.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -429,8 +429,8 @@ export default function ApprovalDetailPage() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Reject Request</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Are you sure you want to reject this request? This action cannot be undone. Please ensure you&lsquo;ve
-                        provided rejection comments.
+                        Are you sure you want to reject this request? This action cannot be undone. Please ensure
+                        you&lsquo;ve provided rejection comments.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
