@@ -71,14 +71,14 @@ export const fetchBaseQueryWithReauth: BaseQueryFn<RequestConfig, unknown, BaseE
     // Build headers - DON'T set headers for FormData, let browser do it
     const mergedHeaders: HeadersInit = isFormData
       ? {
-        ...headers,
-        ...(token && sendToken ? { Authorization: `Bearer ${token}` } : {}),
-      }
+          ...headers,
+          ...(token && sendToken ? { Authorization: `Bearer ${token}` } : {}),
+        }
       : {
-        "Content-Type": "application/json",
-        ...headers,
-        ...(token && sendToken ? { Authorization: `Bearer ${token}` } : {}),
-      };
+          "Content-Type": "application/json",
+          ...headers,
+          ...(token && sendToken ? { Authorization: `Bearer ${token}` } : {}),
+        };
 
     const options: RequestInit = {
       method,
@@ -128,7 +128,7 @@ export const fetchBaseQueryWithReauth: BaseQueryFn<RequestConfig, unknown, BaseE
     const { response, responseData } = await makeRequest(token);
 
     // Handle successful response
-    
+
     if (response.ok) {
       const body = responseData as any;
 
@@ -145,7 +145,7 @@ export const fetchBaseQueryWithReauth: BaseQueryFn<RequestConfig, unknown, BaseE
     // Handle error responses
     const errorBody = responseData as any;
     const errorMessage = errorBody?.message || response.statusText || "Request failed";
-    
+
     console.error("❌ API Error:", {
       status: response.status,
       message: errorMessage,
