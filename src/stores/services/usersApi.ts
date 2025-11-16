@@ -1,3 +1,4 @@
+import { get } from "http";
 import { BaseResponse } from "../api/types";
 import { baseApi } from "../baseApi";
 import type { User, UserRole } from "../types";
@@ -62,7 +63,24 @@ export const usersApi = baseApi.injectEndpoints({
         { type: "Users", id: "LIST" },
       ],
     }),
+
+    // roles
+
+    getRoles: builder.query<BaseResponse, void>({
+      query: () => ({
+        url: "/authorization/roles",
+      }),
+      providesTags: [{ type: "Authorization", id: "LIST" }],
+    }),
+    getPermissions: builder.query<BaseResponse, void>({
+      query: () => ({
+        url: "/authorization/permissions",
+      }),
+      providesTags: [{ type: "Authorization", id: "LIST" }],
+    }),
   }),
+
+
 });
 
 export const {
@@ -72,4 +90,7 @@ export const {
   useUpdateUserMutation,
   useToggleUserStatusMutation,
   useUpdateUserRoleMutation,
+
+  useGetRolesQuery,
+  useGetPermissionsQuery
 } = usersApi;

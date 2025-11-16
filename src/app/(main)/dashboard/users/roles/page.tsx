@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Shield, Key, Download, Search } from "lucide-react";
 
 import { DataTable } from "@/components/data-table/data-table";
@@ -12,29 +12,39 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 
-import { mockRoles, mockPermissions } from "../_components/data";
+import { mockPermissions } from "../_components/data";
 import { rolesColumns } from "../_components/roles-columns";
 import { permissionsColumns } from "../_components/permissions-columns";
 import { CreateRoleDialog } from "../_components/create-role-dialog";
 import { CreatePermissionDialog } from "../_components/create-permission-dialog";
+import { useGetPermissionsQuery, useGetRolesQuery } from "@/stores/services/usersApi";
 
 export default function RolesPermissionsPage() {
   const [roleSearchQuery, setRoleSearchQuery] = useState("");
   const [permissionSearchQuery, setPermissionSearchQuery] = useState("");
 
+  const { data: roles, isLoading } = useGetRolesQuery()
+  const { data: permissions, isLoading: loadingPermissions } = useGetPermissionsQuery()
+
+  const RolesData = roles?.data || []
+
   // Filter roles based on search
-  const filteredRoles = mockRoles.filter(
-    (role) =>
-      role.name.toLowerCase().includes(roleSearchQuery.toLowerCase()) ||
-      role.description.toLowerCase().includes(roleSearchQuery.toLowerCase()),
-  );
+  const filteredRoles = useMemo(() => {
+    return RolesData.filter(
+      (role: any) =>
+        role.name.toLowerCase().includes(roleSearchQuery.toLowerCase()) 
+        // role?.description?.toLowerCase()?.includes(roleSearchQuery.toLowerCase()),
+    );
+  }, [roleSearchQuery, isLoading]);
 
   // Filter permissions based on search
-  const filteredPermissions = mockPermissions.filter(
-    (permission) =>
-      permission.name.toLowerCase().includes(permissionSearchQuery.toLowerCase()) ||
-      permission.module.toLowerCase().includes(permissionSearchQuery.toLowerCase()),
-  );
+  const filteredPermissions = useMemo(() => {
+    return mockPermissions.filter(
+      (permission) =>
+        permission.name.toLowerCase().includes(permissionSearchQuery.toLowerCase()) ||
+        permission.module.toLowerCase().includes(permissionSearchQuery.toLowerCase()),
+    );
+  }, [permissionSearchQuery]);
 
   const rolesTable = useDataTableInstance({
     data: filteredRoles,

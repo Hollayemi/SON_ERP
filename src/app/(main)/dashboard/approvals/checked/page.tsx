@@ -1,117 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ColumnDef } from "@tanstack/react-table";
-import { FileCheck, Eye } from "lucide-react";
+import { FileCheck } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/data-table/data-table";
-import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
-
-interface CheckedRequest {
-  id: string;
-  requestNumber: string;
-  itemName: string;
-  quantity: number;
-  department: string;
-  initiator: string;
-  checkedBy: string;
-  checkedDate: string;
-  submittedDate: string;
-}
-
-const mockCheckedRequests: CheckedRequest[] = [
-  {
-    id: "3",
-    requestNumber: "REQ-2024-003",
-    itemName: "Printers",
-    quantity: 2,
-    department: "Finance",
-    initiator: "Mike Johnson",
-    checkedBy: "Sarah Checker",
-    checkedDate: "2024-01-26",
-    submittedDate: "2024-01-24",
-  },
-  {
-    id: "4",
-    requestNumber: "REQ-2024-007",
-    itemName: "External Hard Drives",
-    quantity: 5,
-    department: "IT Department",
-    initiator: "James Wilson",
-    checkedBy: "Sarah Checker",
-    checkedDate: "2024-01-27",
-    submittedDate: "2024-01-25",
-  },
-];
+import { CheckedRequest } from "@/types/tableColumns";
+import { mockCheckedData } from "../_components/mock_data";
+import { checkedColumns } from "../_components/checked-columns";
 
 export default function CheckedRequestsPage() {
   const router = useRouter();
-  const [data] = useState<CheckedRequest[]>(mockCheckedRequests);
+  const [data] = useState<CheckedRequest[]>(mockCheckedData);
 
-  const columns: ColumnDef<CheckedRequest>[] = [
-    {
-      accessorKey: "requestNumber",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Request ID" />,
-      cell: ({ row }) => <div className="font-mono font-medium">{row.getValue("requestNumber")}</div>,
-    },
-    {
-      accessorKey: "itemName",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Item" />,
-      cell: ({ row }) => <div className="font-medium">{row.getValue("itemName")}</div>,
-    },
-    {
-      accessorKey: "quantity",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Qty" />,
-      cell: ({ row }) => <div className="text-center">{row.getValue("quantity")}</div>,
-    },
-    {
-      accessorKey: "department",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Department" />,
-    },
-    {
-      accessorKey: "initiator",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Initiator" />,
-    },
-    {
-      accessorKey: "checkedBy",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Checked By" />,
-      cell: ({ row }) => (
-        <Badge variant="outline" className="bg-blue-50 text-blue-700">
-          {row.getValue("checkedBy")}
-        </Badge>
-      ),
-    },
-    {
-      accessorKey: "checkedDate",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Checked On" />,
-      cell: ({ row }) => {
-        const date = new Date(row.getValue("checkedDate"));
-        return (
-          <div className="text-muted-foreground text-sm">
-            {date.toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })}
-          </div>
-        );
-      },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => (
-        <Button size="sm" onClick={() => router.push(`/dashboard/approvals/${row.original.id}`)}>
-          <Eye className="mr-2" />
-          Review
-        </Button>
-      ),
-    },
-  ];
+  const columns = useMemo(() => checkedColumns(router), [router]);
 
   const table = useDataTableInstance({
     data,

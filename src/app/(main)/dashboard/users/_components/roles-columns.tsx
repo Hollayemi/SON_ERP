@@ -4,16 +4,9 @@ import { Users } from "lucide-react";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 
-import { Role } from "@/types/roles-permissions";
+import { Role } from "@/types/tableColumns";
 import { CreateRoleDialog } from "./create-role-dialog";
 import { DeleteDialog } from "./delete-dialog";
 
@@ -55,11 +48,11 @@ export const rolesColumns: ColumnDef<Role>[] = [
       </div>
     ),
   },
-  {
-    accessorKey: "description",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,
-    cell: ({ row }) => <span className="text-muted-foreground max-w-md truncate">{row.original.description}</span>,
-  },
+  // {
+  //   accessorKey: "description",
+  //   header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,
+  //   cell: ({ row }) => <span className="text-muted-foreground max-w-md truncate">{row.original.description}</span>,
+  // },
   {
     accessorKey: "permissions",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Permissions" />,
@@ -79,7 +72,7 @@ export const rolesColumns: ColumnDef<Role>[] = [
   {
     accessorKey: "updatedAt",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Last Updated" />,
-    cell: ({ row }) => <span className="text-muted-foreground tabular-nums">{row.original.updatedAt}</span>,
+    cell: ({ row }) => <span className="text-muted-foreground tabular-nums">{row.original.updated_at}</span>,
   },
   {
     id: "actions",

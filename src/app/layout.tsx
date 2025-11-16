@@ -12,6 +12,7 @@ import { AuthProvider } from "@/providers/auth-provider";
 import { THEME_MODE_VALUES, THEME_PRESET_VALUES, type ThemePreset, type ThemeMode } from "@/types/preferences/theme";
 
 import "./globals.css";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,36 +33,38 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       suppressHydrationWarning
     >
       <body className={`${inter.className} min-h-screen antialiased`}>
-        <ReduxProvider>
-          <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
-            <AuthProvider>{children}</AuthProvider>
-            <Toaster
-              toastOptions={
-                {
-                  position: "top-right",
-                  error: {
-                    classNames: {
-                      toast: "border border-red-500 bg-red-50 text-red-700 font-medium",
-                      title: "text-red-700",
-                      description: "text-red-600",
-                      actionButton: "bg-red-100 text-red-800 hover:bg-red-200",
-                      cancelButton: "text-red-500",
+        <ErrorBoundary>
+          <ReduxProvider>
+            <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
+              <AuthProvider>{children}</AuthProvider>
+              <Toaster
+                toastOptions={
+                  {
+                    position: "top-right",
+                    error: {
+                      classNames: {
+                        toast: "border border-red-500 bg-red-50 text-red-700 font-medium",
+                        title: "text-red-700",
+                        description: "text-red-600",
+                        actionButton: "bg-red-100 text-red-800 hover:bg-red-200",
+                        cancelButton: "text-red-500",
+                      },
                     },
-                  },
-                  success: {
-                    classNames: {
-                      toast: "border border-green-500 bg-green-50 text-green-700 font-medium",
-                      title: "text-green-700",
-                      description: "text-green-600",
-                      actionButton: "bg-green-100 text-green-800 hover:bg-green-200",
-                      cancelButton: "text-green-500",
+                    success: {
+                      classNames: {
+                        toast: "border border-green-500 bg-green-50 text-green-700 font-medium",
+                        title: "text-green-700",
+                        description: "text-green-600",
+                        actionButton: "bg-green-100 text-green-800 hover:bg-green-200",
+                        cancelButton: "text-green-500",
+                      },
                     },
-                  },
-                } as any
-              }
-            />
-          </PreferencesStoreProvider>
-        </ReduxProvider>
+                  } as any
+                }
+              />
+            </PreferencesStoreProvider>
+          </ReduxProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

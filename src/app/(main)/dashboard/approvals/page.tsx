@@ -1,229 +1,81 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { ColumnDef } from "@tanstack/react-table";
-import { ClipboardCheck, Eye, Clock, FileCheck, UserCheck, ShieldCheck } from "lucide-react";
+import { Clock, FileCheck, UserCheck, ShieldCheck } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/data-table/data-table";
-import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
-
-type RequestStatus = "PENDING" | "CHECKED" | "REVIEWED" | "APPROVED" | "REJECTED";
-
-interface ApprovalRequest {
-  id: string;
-  requestNumber: string;
-  itemName: string;
-  quantity: number;
-  department: string;
-  initiator: string;
-  status: RequestStatus;
-  submittedDate: string;
-  currentStage: "CHECKER" | "REVIEWER" | "APPROVER";
-  priority: "LOW" | "MEDIUM" | "HIGH";
-}
-
-// Mock Data
-const mockPendingRequests: ApprovalRequest[] = [
-  {
-    id: "1",
-    requestNumber: "REQ-2024-001",
-    itemName: "Desktop Computers",
-    quantity: 3,
-    department: "IT Department",
-    initiator: "Easy Gee",
-    status: "PENDING",
-    submittedDate: "2024-01-25",
-    currentStage: "CHECKER",
-    priority: "HIGH",
-  },
-  {
-    id: "2",
-    requestNumber: "REQ-2024-002",
-    itemName: "Office Chairs",
-    quantity: 10,
-    department: "Administration",
-    initiator: "Oluwasusi Stephen",
-    status: "PENDING",
-    submittedDate: "2024-01-26",
-    currentStage: "CHECKER",
-    priority: "MEDIUM",
-  },
-];
-
-const mockCheckedRequests: ApprovalRequest[] = [
-  {
-    id: "3",
-    requestNumber: "REQ-2024-003",
-    itemName: "Printers",
-    quantity: 2,
-    department: "Finance",
-    initiator: "Mike Johnson",
-    status: "CHECKED",
-    submittedDate: "2024-01-24",
-    currentStage: "REVIEWER",
-    priority: "MEDIUM",
-  },
-];
-
-const mockReviewedRequests: ApprovalRequest[] = [
-  {
-    id: "4",
-    requestNumber: "REQ-2024-004",
-    itemName: "Laptops",
-    quantity: 5,
-    department: "Operations",
-    initiator: "Sarah Williams",
-    status: "REVIEWED",
-    submittedDate: "2024-01-23",
-    currentStage: "APPROVER",
-    priority: "HIGH",
-  },
-];
-
-const mockApprovedRequests: ApprovalRequest[] = [
-  {
-    id: "5",
-    requestNumber: "REQ-2024-005",
-    itemName: "Projectors",
-    quantity: 1,
-    department: "Training",
-    initiator: "David Brown",
-    status: "APPROVED",
-    submittedDate: "2024-01-20",
-    currentStage: "APPROVER",
-    priority: "LOW",
-  },
-];
-
-const statusColors: Record<RequestStatus, string> = {
-  PENDING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  CHECKED: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  REVIEWED: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  APPROVED: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  REJECTED: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-};
-
-const priorityColors = {
-  LOW: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-  MEDIUM: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
-  HIGH: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-};
+import { ApprovalRequest } from "@/types/tableColumns";
+import {
+  mockApprovalRequests,
+  mockCheckedRequests,
+  mockPendingRequests,
+  mockReviewedRequests,
+} from "./_components/mock_data";
+import { createApprovalColumns } from "./_components/approval-columns";
 
 export default function ApprovalsPage() {
   const router = useRouter();
-  const [pendingRequests] = useState<ApprovalRequest[]>(mockPendingRequests);
-  const [checkedRequests] = useState<ApprovalRequest[]>(mockCheckedRequests);
-  const [reviewedRequests] = useState<ApprovalRequest[]>(mockReviewedRequests);
-  const [approvedRequests] = useState<ApprovalRequest[]>(mockApprovedRequests);
 
-  const createColumns = (showActions: boolean = true): ColumnDef<ApprovalRequest>[] => [
-    {
-      accessorKey: "requestNumber",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Request ID" />,
-      cell: ({ row }) => <div className="font-mono font-medium">{row.getValue("requestNumber")}</div>,
-    },
-    {
-      accessorKey: "itemName",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Item" />,
-      cell: ({ row }) => <div className="font-medium">{row.getValue("itemName")}</div>,
-    },
-    {
-      accessorKey: "quantity",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Qty" />,
-      cell: ({ row }) => <div className="text-center">{row.getValue("quantity")}</div>,
-    },
-    {
-      accessorKey: "department",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Department" />,
-    },
-    {
-      accessorKey: "initiator",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Initiator" />,
-    },
-    {
-      accessorKey: "priority",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Priority" />,
-      cell: ({ row }) => {
-        const priority = row.getValue("priority") as keyof typeof priorityColors;
-        return (
-          <Badge variant="outline" className={priorityColors[priority]}>
-            {priority}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: "submittedDate",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Submitted" />,
-      cell: ({ row }) => {
-        const date = new Date(row.getValue("submittedDate"));
-        return (
-          <div className="text-muted-foreground text-sm">
-            {date.toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
-      cell: ({ row }) => {
-        const status = row.getValue("status") as RequestStatus;
-        return (
-          <Badge variant="outline" className={statusColors[status]}>
-            {status}
-          </Badge>
-        );
-      },
-    },
-    ...(showActions
-      ? [
-          {
-            id: "actions",
-            cell: ({ row }: { row: any }) => (
-              <Button size="sm" onClick={() => router.push(`/dashboard/approvals/${row.original.id}`)}>
-                <Eye className="mr-2" />
-                Review
-              </Button>
-            ),
-          } as ColumnDef<ApprovalRequest>,
-        ]
-      : []),
-  ];
+  // Memoize the mock data arrays
+  const mockData = useMemo(
+    () => ({
+      pending: mockPendingRequests,
+      checked: mockCheckedRequests,
+      reviewed: mockReviewedRequests,
+      approved: mockApprovalRequests,
+    }),
+    [],
+  );
 
+  const [pendingRequests] = useState<ApprovalRequest[]>(mockData.pending);
+  const [checkedRequests] = useState<ApprovalRequest[]>(mockData.checked);
+  const [reviewedRequests] = useState<ApprovalRequest[]>(mockData.reviewed);
+  const [approvedRequests] = useState<ApprovalRequest[]>(mockData.approved);
+
+  // Memoize the columns to prevent unnecessary re-renders
+  const approvalColumns = useMemo(() => createApprovalColumns(router), [router]);
+
+  const approvalColumnsWithoutActions = useMemo(() => createApprovalColumns(router, false), [router]);
+
+  // Memoize table instances
   const pendingTable = useDataTableInstance({
     data: pendingRequests,
-    columns: createColumns(),
+    columns: approvalColumns,
     getRowId: (row) => row.id,
   });
 
   const checkedTable = useDataTableInstance({
     data: checkedRequests,
-    columns: createColumns(),
+    columns: approvalColumns,
     getRowId: (row) => row.id,
   });
 
   const reviewedTable = useDataTableInstance({
     data: reviewedRequests,
-    columns: createColumns(),
+    columns: approvalColumns,
     getRowId: (row) => row.id,
   });
 
   const approvedTable = useDataTableInstance({
     data: approvedRequests,
-    columns: createColumns(false),
+    columns: approvalColumnsWithoutActions,
     getRowId: (row) => row.id,
   });
+
+  // Memoize the counts for stats cards
+  const requestCounts = useMemo(
+    () => ({
+      pending: pendingRequests.length,
+      checked: checkedRequests.length,
+      reviewed: reviewedRequests.length,
+      approved: approvedRequests.length,
+    }),
+    [pendingRequests.length, checkedRequests.length, reviewedRequests.length, approvedRequests.length],
+  );
 
   return (
     <div className="@container/main flex flex-col gap-6">
@@ -243,7 +95,7 @@ export default function ApprovalsPage() {
             <Clock className="size-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pendingRequests.length}</div>
+            <div className="text-2xl font-bold">{requestCounts.pending}</div>
             <p className="text-muted-foreground mt-1 text-xs">Awaiting checker review</p>
           </CardContent>
         </Card>
@@ -254,7 +106,7 @@ export default function ApprovalsPage() {
             <FileCheck className="size-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{checkedRequests.length}</div>
+            <div className="text-2xl font-bold">{requestCounts.checked}</div>
             <p className="text-muted-foreground mt-1 text-xs">Ready for director review</p>
           </CardContent>
         </Card>
@@ -265,7 +117,7 @@ export default function ApprovalsPage() {
             <UserCheck className="size-4 text-purple-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{reviewedRequests.length}</div>
+            <div className="text-2xl font-bold">{requestCounts.reviewed}</div>
             <p className="text-muted-foreground mt-1 text-xs">Awaiting DG approval</p>
           </CardContent>
         </Card>
@@ -276,7 +128,7 @@ export default function ApprovalsPage() {
             <ShieldCheck className="size-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{approvedRequests.length}</div>
+            <div className="text-2xl font-bold">{requestCounts.approved}</div>
             <p className="text-muted-foreground mt-1 text-xs">Sent to procurement</p>
           </CardContent>
         </Card>
@@ -327,10 +179,10 @@ export default function ApprovalsPage() {
       {/* Tabs for detailed views */}
       <Tabs defaultValue="pending" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="pending">Pending Review ({pendingRequests.length})</TabsTrigger>
-          <TabsTrigger value="checked">Checked ({checkedRequests.length})</TabsTrigger>
-          <TabsTrigger value="reviewed">Reviewed ({reviewedRequests.length})</TabsTrigger>
-          <TabsTrigger value="approved">Approved ({approvedRequests.length})</TabsTrigger>
+          <TabsTrigger value="pending">Pending Review ({requestCounts.pending})</TabsTrigger>
+          <TabsTrigger value="checked">Checked ({requestCounts.checked})</TabsTrigger>
+          <TabsTrigger value="reviewed">Reviewed ({requestCounts.reviewed})</TabsTrigger>
+          <TabsTrigger value="approved">Approved ({requestCounts.approved})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pending" className="space-y-4">
@@ -341,7 +193,7 @@ export default function ApprovalsPage() {
             </CardHeader>
             <CardContent>
               <div className="overflow-hidden rounded-lg border">
-                <DataTable table={pendingTable} columns={createColumns()} />
+                <DataTable table={pendingTable} columns={approvalColumns} />
               </div>
             </CardContent>
           </Card>
@@ -355,7 +207,7 @@ export default function ApprovalsPage() {
             </CardHeader>
             <CardContent>
               <div className="overflow-hidden rounded-lg border">
-                <DataTable table={checkedTable} columns={createColumns()} />
+                <DataTable table={checkedTable} columns={approvalColumns} />
               </div>
             </CardContent>
           </Card>
@@ -369,7 +221,7 @@ export default function ApprovalsPage() {
             </CardHeader>
             <CardContent>
               <div className="overflow-hidden rounded-lg border">
-                <DataTable table={reviewedTable} columns={createColumns()} />
+                <DataTable table={reviewedTable} columns={approvalColumns} />
               </div>
             </CardContent>
           </Card>
@@ -383,7 +235,7 @@ export default function ApprovalsPage() {
             </CardHeader>
             <CardContent>
               <div className="overflow-hidden rounded-lg border">
-                <DataTable table={approvedTable} columns={createColumns(false)} />
+                <DataTable table={approvedTable} columns={approvalColumnsWithoutActions} />
               </div>
             </CardContent>
           </Card>

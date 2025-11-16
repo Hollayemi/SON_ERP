@@ -9,78 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-interface BudgetCategory {
-  id: string;
-  category: string;
-  allocated: number;
-  spent: number;
-  remaining: number;
-  percentage: number;
-  status: "HEALTHY" | "WARNING" | "CRITICAL";
-}
-
-interface MonthlyExpenditure {
-  month: string;
-  amount: number;
-}
-
-const mockBudgetData: BudgetCategory[] = [
-  {
-    id: "1",
-    category: "IT Equipment",
-    allocated: 5000000,
-    spent: 2450000,
-    remaining: 2550000,
-    percentage: 49,
-    status: "HEALTHY",
-  },
-  {
-    id: "2",
-    category: "Office Furniture",
-    allocated: 2000000,
-    spent: 1600000,
-    remaining: 400000,
-    percentage: 80,
-    status: "WARNING",
-  },
-  {
-    id: "3",
-    category: "Office Supplies",
-    allocated: 1500000,
-    spent: 950000,
-    remaining: 550000,
-    percentage: 63,
-    status: "HEALTHY",
-  },
-  {
-    id: "4",
-    category: "Training & Development",
-    allocated: 3000000,
-    spent: 2750000,
-    remaining: 250000,
-    percentage: 92,
-    status: "CRITICAL",
-  },
-  {
-    id: "5",
-    category: "Maintenance",
-    allocated: 1000000,
-    spent: 450000,
-    remaining: 550000,
-    percentage: 45,
-    status: "HEALTHY",
-  },
-];
-
-const mockMonthlyData: MonthlyExpenditure[] = [
-  { month: "Jan", amount: 3200000 },
-  { month: "Feb", amount: 2800000 },
-  { month: "Mar", amount: 4100000 },
-  { month: "Apr", amount: 3500000 },
-  { month: "May", amount: 4200000 },
-  { month: "Jun", amount: 3900000 },
-];
+import { mockBudgetData, mockMonthlyData } from "../_components/mock";
 
 const statusColors = {
   HEALTHY: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",

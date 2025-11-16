@@ -14,7 +14,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import { mockRoles, mockPermissions } from "./data";
-import { Role, Permission } from "@/types/roles-permissions";
+import { Role, Permission } from "@/types/tableColumns";
 
 export function PermissionsMatrix() {
   const [matrixData, setMatrixData] = useState(() => {

@@ -25,8 +25,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
 import { createRoleSchema, RoleFormData } from "./schema";
-import { mockPermissions } from "./data";
-import { Role } from "@/types/roles-permissions";
+import { Role } from "@/types/tableColumns";
 
 interface CreateRoleDialogProps {
   role?: Role | null;
@@ -41,7 +40,7 @@ export function CreateRoleDialog({ role, onSuccess }: CreateRoleDialogProps) {
     defaultValues: {
       name: role?.name || "",
       description: role?.description || "",
-      permissions: role?.permissions || [],
+      permissions: role?.permissions?.map((p) => p.id) || [],
     },
   });
 
@@ -64,17 +63,18 @@ export function CreateRoleDialog({ role, onSuccess }: CreateRoleDialogProps) {
     }
   };
 
-  // Group permissions by module
-  const permissionsByModule = mockPermissions.reduce(
-    (acc, permission) => {
-      if (!acc[permission.module]) {
-        acc[permission.module] = [];
-      }
-      acc[permission.module].push(permission);
-      return acc;
-    },
-    {} as Record<string, typeof mockPermissions>,
-  );
+  
+  const permissionsByModule = (role?.permissions ?? []).reduce((acc, permission) => {
+    const moduleName = permission.name.split(".")[0];
+
+    if (!acc[moduleName]) {
+      acc[moduleName] = [];
+    }
+
+    acc[moduleName].push(permission);
+    return acc;
+  }, {} as Record<string, Role["permissions"][number][]>);
+  
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -145,7 +145,7 @@ export function CreateRoleDialog({ role, onSuccess }: CreateRoleDialogProps) {
                       {Object.entries(permissionsByModule).map(([module, permissions]) => (
                         <div key={module} className="space-y-3">
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline">{module}</Badge>
+                            <Badge variant="outline" className="capitalize">{module.split("_").join(" ")}</Badge>
                             <Separator className="flex-1" />
                           </div>
                           <div className="space-y-2">
@@ -170,7 +170,7 @@ export function CreateRoleDialog({ role, onSuccess }: CreateRoleDialogProps) {
                                       />
                                     </FormControl>
                                     <div className="space-y-1 leading-none">
-                                      <FormLabel className="font-medium">{permission.name}</FormLabel>
+                                      <FormLabel className="font-medium">{permission.name.split(".")[1].split("_").join(" ")}</FormLabel>
                                       <FormDescription className="text-xs">{permission.description}</FormDescription>
                                     </div>
                                   </FormItem>

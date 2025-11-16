@@ -1,38 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ColumnDef } from "@tanstack/react-table";
-import {
-  FolderOpen,
-  Eye,
-  Download,
-  Trash2,
-  FileText,
-  Image,
-  File,
-  MoreVertical,
-  Upload,
-  Search,
-  Filter,
-} from "lucide-react";
+import { FolderOpen, FileText, Image, File, Upload, Search, Filter } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/data-table/data-table";
-import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,91 +22,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-
-interface Document {
-  id: string;
-  title: string;
-  fileName: string;
-  fileType: string;
-  fileSize: number;
-  category: string;
-  relatedTo?: string;
-  uploadedBy: string;
-  uploadedDate: string;
-  version: number;
-  tags: string[];
-  description?: string;
-}
-
-const mockDocuments: Document[] = [
-  {
-    id: "1",
-    title: "Technical Specifications",
-    fileName: "tech_specs_v2.pdf",
-    fileType: "application/pdf",
-    fileSize: 2450,
-    category: "Request Documents",
-    relatedTo: "REQ-2024-001",
-    uploadedBy: "Easy Gee",
-    uploadedDate: "2024-01-25",
-    version: 2,
-    tags: ["technical", "specifications"],
-    description: "Technical specifications for desktop computers",
-  },
-  {
-    id: "2",
-    title: "Purchase Order - Office Chairs",
-    fileName: "PO-2024-002.pdf",
-    fileType: "application/pdf",
-    fileSize: 1200,
-    category: "Purchase Orders",
-    relatedTo: "PO-2024-002",
-    uploadedBy: "John Procurement",
-    uploadedDate: "2024-01-24",
-    version: 1,
-    tags: ["purchase-order", "furniture"],
-    description: "Purchase order for office chairs",
-  },
-  {
-    id: "3",
-    title: "Invoice - TechHub Nigeria",
-    fileName: "invoice_techhub_jan.pdf",
-    fileType: "application/pdf",
-    fileSize: 890,
-    category: "Invoices",
-    relatedTo: "PO-2024-001",
-    uploadedBy: "Sarah Admin",
-    uploadedDate: "2024-01-23",
-    version: 1,
-    tags: ["invoice", "payment"],
-  },
-  {
-    id: "4",
-    title: "Payment Receipt",
-    fileName: "receipt_TRF-2024-001.pdf",
-    fileType: "application/pdf",
-    fileSize: 450,
-    category: "Receipts",
-    relatedTo: "TRF-2024-001",
-    uploadedBy: "John Finance",
-    uploadedDate: "2024-01-22",
-    version: 1,
-    tags: ["receipt", "payment"],
-  },
-  {
-    id: "5",
-    title: "Budget Proposal Q1",
-    fileName: "budget_q1_2024.xlsx",
-    fileType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    fileSize: 3200,
-    category: "Budget Documents",
-    uploadedBy: "Sarah Admin",
-    uploadedDate: "2024-01-20",
-    version: 3,
-    tags: ["budget", "quarterly"],
-    description: "Q1 2024 budget proposal and breakdown",
-  },
-];
+import { mockDocuments } from "../_components/mockdata";
+import { Document } from "../types";
+import { manageColumns } from "../_components/manage.column";
 
 const categories = [
   "All Categories",
@@ -151,16 +47,20 @@ export default function ManageDocumentsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
 
-  const filteredData = data.filter((doc) => {
-    const matchesCategory = categoryFilter === "All Categories" || doc.category === categoryFilter;
-    const matchesSearch =
-      searchQuery === "" ||
-      doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.fileName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.relatedTo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesCategory && matchesSearch;
-  });
+  const filteredData = useMemo(
+    () =>
+      data.filter((doc) => {
+        const matchesCategory = categoryFilter === "All Categories" || doc.category === categoryFilter;
+        const matchesSearch =
+          searchQuery === "" ||
+          doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          doc.fileName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          doc.relatedTo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          doc.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+        return matchesCategory && matchesSearch;
+      }),
+    [categoryFilter],
+  );
 
   const getFileIcon = (fileType: string) => {
     if (fileType.includes("image")) return <Image className="size-4 text-blue-500" />;
@@ -191,96 +91,7 @@ export default function ManageDocumentsPage() {
     router.push(`/dashboard/documents/${id}`);
   };
 
-  const columns: ColumnDef<Document>[] = [
-    {
-      accessorKey: "title",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Document" />,
-      cell: ({ row }) => (
-        <div className="flex items-center gap-3">
-          {getFileIcon(row.original.fileType)}
-          <div>
-            <div className="font-medium">{row.getValue("title")}</div>
-            <div className="text-muted-foreground text-xs">{row.original.fileName}</div>
-          </div>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "category",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Category" />,
-      cell: ({ row }) => <Badge variant="outline">{row.getValue("category")}</Badge>,
-    },
-    {
-      accessorKey: "relatedTo",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Related To" />,
-      cell: ({ row }) => {
-        const relatedTo = row.getValue("relatedTo") as string | undefined;
-        return relatedTo ? (
-          <div className="font-mono text-sm">{relatedTo}</div>
-        ) : (
-          <span className="text-muted-foreground italic">-</span>
-        );
-      },
-    },
-    {
-      accessorKey: "fileSize",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Size" />,
-      cell: ({ row }) => <div className="text-sm">{row.getValue("fileSize")} KB</div>,
-    },
-    {
-      accessorKey: "version",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Version" />,
-      cell: ({ row }) => <Badge variant="outline">v{row.getValue("version")}</Badge>,
-    },
-    {
-      accessorKey: "uploadedBy",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Uploaded By" />,
-      cell: ({ row }) => <div className="text-sm">{row.getValue("uploadedBy")}</div>,
-    },
-    {
-      accessorKey: "uploadedDate",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Date" />,
-      cell: ({ row }) => {
-        const date = new Date(row.getValue("uploadedDate"));
-        return (
-          <div className="text-muted-foreground text-sm">
-            {date.toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })}
-          </div>
-        );
-      },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <MoreVertical className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleView(row.original.id)}>
-              <Eye className="mr-2 size-4" />
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleDownload(row.original)}>
-              <Download className="mr-2 size-4" />
-              Download
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={() => handleDelete(row.original.id)}>
-              <Trash2 className="mr-2 size-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
-  ];
+  const columns = useMemo(() => manageColumns(getFileIcon, handleDelete, handleDownload, handleView), [router]);
 
   const table = useDataTableInstance({
     data: filteredData,

@@ -121,7 +121,7 @@ export const sidebarItems: NavGroup[] = [
         icon: History,
       },
       {
-        title: "User Management",
+        title: "Authorization",
         url: "/dashboard/users",
         icon: Users,
         subItems: [

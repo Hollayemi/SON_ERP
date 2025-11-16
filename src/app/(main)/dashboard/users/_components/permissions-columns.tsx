@@ -1,4 +1,4 @@
-import { Permission } from "@/types/roles-permissions";
+import { Permission } from "@/types/tableColumns";
 import { CreatePermissionDialog } from "./create-permission-dialog";
 import { ColumnDef } from "@tanstack/react-table";
 

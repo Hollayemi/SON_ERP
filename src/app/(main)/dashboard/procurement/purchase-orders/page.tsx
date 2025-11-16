@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ColumnDef, Column } from "@tanstack/react-table";
 import { FileText, Eye, Download, Filter, Plus, Package, CheckCircle, Clock, XCircle } from "lucide-react";
@@ -13,175 +13,25 @@ import { DataTableColumnHeader } from "@/components/data-table/data-table-column
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-type POStatus = "DRAFT" | "SENT" | "CONFIRMED" | "DELIVERED" | "CANCELLED";
-
-interface PurchaseOrder {
-  id: string;
-  poNumber: string;
-  requestId: string;
-  vendorName: string;
-  itemName: string;
-  quantity: number;
-  totalAmount: number;
-  status: POStatus;
-  createdDate: string;
-  deliveryDate?: string;
-  createdBy: string;
-}
-
-// Mock Data
-const mockPurchaseOrders: PurchaseOrder[] = [
-  {
-    id: "1",
-    poNumber: "PO-2024-001",
-    requestId: "REQ-2024-003",
-    vendorName: "TechHub Nigeria",
-    itemName: "Desktop Computers",
-    quantity: 3,
-    totalAmount: 450000,
-    status: "CONFIRMED",
-    createdDate: "2024-01-20",
-    deliveryDate: "2024-02-05",
-    createdBy: "John Procurement",
-  },
-  {
-    id: "2",
-    poNumber: "PO-2024-002",
-    requestId: "REQ-2024-007",
-    vendorName: "Office Essentials Ltd",
-    itemName: "Office Chairs",
-    quantity: 10,
-    totalAmount: 250000,
-    status: "SENT",
-    createdDate: "2024-01-22",
-    deliveryDate: "2024-02-10",
-    createdBy: "Mary Supplier",
-  },
-  {
-    id: "3",
-    poNumber: "PO-2024-003",
-    requestId: "REQ-2024-009",
-    vendorName: "Prime Suppliers",
-    itemName: "Printers",
-    quantity: 2,
-    totalAmount: 180000,
-    status: "DELIVERED",
-    createdDate: "2024-01-18",
-    deliveryDate: "2024-01-28",
-    createdBy: "John Procurement",
-  },
-  {
-    id: "4",
-    poNumber: "PO-2024-004",
-    requestId: "REQ-2024-012",
-    vendorName: "Tech Solutions Inc",
-    itemName: "Laptops",
-    quantity: 5,
-    totalAmount: 750000,
-    status: "DRAFT",
-    createdDate: "2024-01-25",
-    createdBy: "Sarah Admin",
-  },
-];
-
-const statusColors: Record<POStatus, string> = {
-  DRAFT: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-  SENT: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  CONFIRMED: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  DELIVERED: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  CANCELLED: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-};
+import { PurchaseOrder } from "@/types/tableColumns";
+import { POColumns } from "../_component/purchase.order.column";
+import { mockPurchaseOrders } from "../_component/mockdata";
 
 export default function PurchaseOrdersPage() {
   const router = useRouter();
   const [data] = useState<PurchaseOrder[]>(mockPurchaseOrders);
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const filteredData = data.filter((po) => {
-    if (statusFilter === "all") return true;
-    return po.status === statusFilter;
-  });
+  const filteredData = useMemo(
+    () =>
+      data.filter((po) => {
+        if (statusFilter === "all") return true;
+        return po.status === statusFilter;
+      }),
+    [statusFilter],
+  );
 
-  const columns: ColumnDef<PurchaseOrder>[] = [
-    {
-      accessorKey: "poNumber",
-      header: ({ column }: { column: Column<PurchaseOrder> }) => (
-        <DataTableColumnHeader column={column} title="PO Number" />
-      ),
-      cell: ({ row }) => <div className="font-mono font-medium">{row.getValue("poNumber")}</div>,
-    },
-    {
-      accessorKey: "requestId",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Request ID" />,
-      cell: ({ row }) => <div className="font-mono text-sm">{row.getValue("requestId")}</div>,
-    },
-    {
-      accessorKey: "vendorName",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Vendor" />,
-      cell: ({ row }) => <div className="font-medium">{row.getValue("vendorName")}</div>,
-    },
-    {
-      accessorKey: "itemName",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Item" />,
-    },
-    {
-      accessorKey: "quantity",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Qty" />,
-      cell: ({ row }) => <div className="text-center">{row.getValue("quantity")}</div>,
-    },
-    {
-      accessorKey: "totalAmount",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Total Amount" />,
-      cell: ({ row }) => <div className="font-medium">₦{(row.getValue("totalAmount") as number).toLocaleString()}</div>,
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
-      cell: ({ row }) => {
-        const status = row.getValue("status") as POStatus;
-        return (
-          <Badge variant="outline" className={statusColors[status]}>
-            {status}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: "deliveryDate",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Delivery Date" />,
-      cell: ({ row }) => {
-        const date = row.getValue("deliveryDate") as string | undefined;
-        if (!date) return <span className="text-muted-foreground italic">Not set</span>;
-        return (
-          <div className="text-muted-foreground">
-            {new Date(date).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })}
-          </div>
-        );
-      },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => (
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => router.push(`/dashboard/procurement/purchase-orders/${row.original.id}`)}
-          >
-            <Eye className="size-4" />
-          </Button>
-          <Button size="sm" variant="ghost">
-            <Download className="size-4" />
-          </Button>
-        </div>
-      ),
-    },
-  ];
+  const columns = useMemo(() => POColumns(router), [router]);
 
   const table = useDataTableInstance({
     data: filteredData,

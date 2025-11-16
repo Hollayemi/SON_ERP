@@ -23,7 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 import { createPermissionSchema, PermissionFormData } from "./schema";
 import { moduleOptions } from "./data";
-import { Permission } from "@/types/roles-permissions";
+import { Permission } from "@/types/tableColumns";
 
 interface CreatePermissionDialogProps {
   permission?: Permission | null;

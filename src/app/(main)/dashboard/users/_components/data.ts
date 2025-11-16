@@ -1,4 +1,4 @@
-import { Role, Permission } from "@/types/roles-permissions";
+import { Role, Permission } from "@/types/tableColumns";
 
 export const mockPermissions: Permission[] = [
   {

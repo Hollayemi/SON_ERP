@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Package, Eye, Download, Calendar, TrendingUp, CheckCircle2, Clock } from "lucide-react";
@@ -14,87 +14,11 @@ import { DataTablePagination } from "@/components/data-table/data-table-paginati
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-interface ProcurementHistory {
-  id: string;
-  poNumber: string;
-  requestNumber: string;
-  itemName: string;
-  quantity: number;
-  vendorName: string;
-  totalAmount: number;
-  status: "DELIVERED" | "PENDING_DELIVERY" | "CANCELLED";
-  orderedDate: string;
-  deliveredDate?: string;
-  department: string;
-}
+import { ProcurementHistory } from "@/types/tableColumns";
+import { mockHistory } from "../_component/mockdata";
+import { historyColumns } from "../_component/history.columns";
 
 // Mock Data
-const mockHistory: ProcurementHistory[] = [
-  {
-    id: "1",
-    poNumber: "PO-2024-001",
-    requestNumber: "REQ-2024-003",
-    itemName: "Desktop Computers",
-    quantity: 3,
-    vendorName: "TechHub Nigeria",
-    totalAmount: 450000,
-    status: "DELIVERED",
-    orderedDate: "2024-01-20",
-    deliveredDate: "2024-01-28",
-    department: "IT Department",
-  },
-  {
-    id: "2",
-    poNumber: "PO-2024-002",
-    requestNumber: "REQ-2024-007",
-    itemName: "Office Chairs",
-    quantity: 10,
-    vendorName: "Office Essentials Ltd",
-    totalAmount: 250000,
-    status: "PENDING_DELIVERY",
-    orderedDate: "2024-01-22",
-    department: "Administration",
-  },
-  {
-    id: "3",
-    poNumber: "PO-2023-045",
-    requestNumber: "REQ-2023-120",
-    itemName: "Printers",
-    quantity: 2,
-    vendorName: "Prime Suppliers",
-    totalAmount: 180000,
-    status: "DELIVERED",
-    orderedDate: "2023-12-15",
-    deliveredDate: "2023-12-28",
-    department: "Finance",
-  },
-  {
-    id: "4",
-    poNumber: "PO-2023-044",
-    requestNumber: "REQ-2023-118",
-    itemName: "Laptops",
-    quantity: 5,
-    vendorName: "Tech Solutions Inc",
-    totalAmount: 750000,
-    status: "DELIVERED",
-    orderedDate: "2023-12-10",
-    deliveredDate: "2023-12-22",
-    department: "IT Department",
-  },
-  {
-    id: "5",
-    poNumber: "PO-2023-043",
-    requestNumber: "REQ-2023-115",
-    itemName: "Projectors",
-    quantity: 1,
-    vendorName: "TechHub Nigeria",
-    totalAmount: 85000,
-    status: "CANCELLED",
-    orderedDate: "2023-12-05",
-    department: "Operations",
-  },
-];
 
 const statusColors = {
   DELIVERED: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
@@ -109,118 +33,25 @@ export default function ProcurementHistoryPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
 
-  const filteredData = data.filter((item) => {
-    const matchesSearch =
-      searchQuery === "" ||
-      item.poNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.requestNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.vendorName.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredData = useMemo(
+    () =>
+      data.filter((item) => {
+        const matchesSearch =
+          searchQuery === "" ||
+          item.poNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.requestNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.vendorName.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesStatus = statusFilter === "all" || item.status === statusFilter;
-    const matchesDepartment = departmentFilter === "all" || item.department === departmentFilter;
+        const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+        const matchesDepartment = departmentFilter === "all" || item.department === departmentFilter;
 
-    return matchesSearch && matchesStatus && matchesDepartment;
-  });
+        return matchesSearch && matchesStatus && matchesDepartment;
+      }),
+    [searchQuery, statusFilter],
+  );
 
-  const columns: ColumnDef<ProcurementHistory>[] = [
-    {
-      accessorKey: "poNumber",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="PO Number" />,
-      cell: ({ row }) => <div className="font-mono font-medium">{row.getValue("poNumber")}</div>,
-    },
-    {
-      accessorKey: "requestNumber",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Request ID" />,
-      cell: ({ row }) => <div className="font-mono text-sm">{row.getValue("requestNumber")}</div>,
-    },
-    {
-      accessorKey: "itemName",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Item" />,
-      cell: ({ row }) => <div className="font-medium">{row.getValue("itemName")}</div>,
-    },
-    {
-      accessorKey: "quantity",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Qty" />,
-      cell: ({ row }) => <div className="text-center">{row.getValue("quantity")}</div>,
-    },
-    {
-      accessorKey: "vendorName",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Vendor" />,
-    },
-    {
-      accessorKey: "totalAmount",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Amount" />,
-      cell: ({ row }) => <div className="font-medium">₦{(row.getValue("totalAmount") as number).toLocaleString()}</div>,
-    },
-    {
-      accessorKey: "department",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Department" />,
-      cell: ({ row }) => <Badge variant="outline">{row.getValue("department")}</Badge>,
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
-      cell: ({ row }) => {
-        const status = row.getValue("status") as keyof typeof statusColors;
-        return (
-          <Badge variant="outline" className={statusColors[status]}>
-            {status.replace("_", " ")}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: "orderedDate",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Ordered Date" />,
-      cell: ({ row }) => {
-        const date = new Date(row.getValue("orderedDate"));
-        return (
-          <div className="text-muted-foreground text-sm">
-            {date.toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "deliveredDate",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Delivered" />,
-      cell: ({ row }) => {
-        const date = row.getValue("deliveredDate") as string | undefined;
-        if (!date) return <span className="text-muted-foreground italic">-</span>;
-        return (
-          <div className="text-muted-foreground text-sm">
-            {new Date(date).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })}
-          </div>
-        );
-      },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => (
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => router.push(`/dashboard/procurement/history/${row.original.id}`)}
-          >
-            <Eye className="size-4" />
-          </Button>
-          <Button size="sm" variant="ghost">
-            <Download className="size-4" />
-          </Button>
-        </div>
-      ),
-    },
-  ];
+  const columns = useMemo(() => historyColumns(router), [router]);
 
   const table = useDataTableInstance({
     data: filteredData,
