@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Shield, Key, Download, Search } from "lucide-react";
+import { Download, Search } from "lucide-react";
 
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
@@ -12,51 +12,55 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 
-import { mockPermissions } from "../_components/data";
 import { rolesColumns } from "../_components/roles-columns";
 import { permissionsColumns } from "../_components/permissions-columns";
 import { CreateRoleDialog } from "../_components/create-role-dialog";
 import { CreatePermissionDialog } from "../_components/create-permission-dialog";
 import { useGetPermissionsQuery, useGetRolesQuery } from "@/stores/services/usersApi";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function RolesPermissionsPage() {
   const [roleSearchQuery, setRoleSearchQuery] = useState("");
   const [permissionSearchQuery, setPermissionSearchQuery] = useState("");
 
-  const { data: roles, isLoading } = useGetRolesQuery()
-  const { data: permissions, isLoading: loadingPermissions } = useGetPermissionsQuery()
+  const { data: rolesResponse, isLoading: loadingRoles, refetch: refetchRoles } = useGetRolesQuery();
+  const { data: permissionsResponse, isLoading: loadingPermissions, refetch: refetchPermissions } = useGetPermissionsQuery();
 
-  const RolesData = roles?.data || []
+  const roles = rolesResponse?.data || [];
+  const permissions = permissionsResponse?.data || [];
 
   // Filter roles based on search
   const filteredRoles = useMemo(() => {
-    return RolesData.filter(
-      (role: any) =>
-        role.name.toLowerCase().includes(roleSearchQuery.toLowerCase()) 
-        // role?.description?.toLowerCase()?.includes(roleSearchQuery.toLowerCase()),
+    if (!roles) return [];
+    return roles.filter((role: any) =>
+      role.name.toLowerCase().includes(roleSearchQuery.toLowerCase())
     );
-  }, [roleSearchQuery, isLoading]);
+  }, [roleSearchQuery, roles]);
 
   // Filter permissions based on search
   const filteredPermissions = useMemo(() => {
-    return mockPermissions.filter(
-      (permission) =>
-        permission.name.toLowerCase().includes(permissionSearchQuery.toLowerCase()) ||
-        permission.module.toLowerCase().includes(permissionSearchQuery.toLowerCase()),
+    if (!permissions) return [];
+    return permissions.filter((permission: any) =>
+      permission.name.toLowerCase().includes(permissionSearchQuery.toLowerCase())
     );
-  }, [permissionSearchQuery]);
+  }, [permissionSearchQuery, permissions]);
 
   const rolesTable = useDataTableInstance({
     data: filteredRoles,
     columns: rolesColumns,
-    getRowId: (row) => row.id,
+    getRowId: (row: any) => row.id.toString(),
   });
 
   const permissionsTable = useDataTableInstance({
     data: filteredPermissions,
     columns: permissionsColumns,
-    getRowId: (row) => row.id,
+    getRowId: (row: any) => row.id.toString(),
   });
+
+  const handleRefetch = () => {
+    refetchRoles();
+    refetchPermissions();
+  };
 
   return (
     <div className="@container/main flex flex-col gap-6">
@@ -86,7 +90,10 @@ export default function RolesPermissionsPage() {
                   <CardDescription>Create and manage roles with specific permission sets</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CreateRoleDialog />
+                  <CreateRoleDialog
+                    permissions={permissions}
+                    onSuccess={handleRefetch}
+                  />
                 </div>
               </div>
             </CardHeader>
@@ -112,10 +119,20 @@ export default function RolesPermissionsPage() {
               </div>
 
               {/* Table */}
-              <div className="overflow-hidden rounded-md border">
-                <DataTable table={rolesTable} columns={rolesColumns} />
-              </div>
-              <DataTablePagination table={rolesTable} />
+              {loadingRoles ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ) : (
+                <>
+                  <div className="overflow-hidden rounded-md border">
+                    <DataTable table={rolesTable} columns={rolesColumns} />
+                  </div>
+                  <DataTablePagination table={rolesTable} />
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -129,7 +146,7 @@ export default function RolesPermissionsPage() {
                   <CardDescription>Define specific permissions for different system modules</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CreatePermissionDialog />
+                  <CreatePermissionDialog onSuccess={refetchPermissions} />
                 </div>
               </div>
             </CardHeader>
@@ -155,10 +172,20 @@ export default function RolesPermissionsPage() {
               </div>
 
               {/* Table */}
-              <div className="overflow-hidden rounded-md border">
-                <DataTable table={permissionsTable} columns={permissionsColumns} />
-              </div>
-              <DataTablePagination table={permissionsTable} />
+              {loadingPermissions ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ) : (
+                <>
+                  <div className="overflow-hidden rounded-md border">
+                    <DataTable table={permissionsTable} columns={permissionsColumns} />
+                  </div>
+                  <DataTablePagination table={permissionsTable} />
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

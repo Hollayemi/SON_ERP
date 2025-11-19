@@ -4,11 +4,17 @@ import { Users } from "lucide-react";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
 
-import { Role } from "@/types/tableColumns";
 import { CreateRoleDialog } from "./create-role-dialog";
 import { DeleteDialog } from "./delete-dialog";
+
+export type Role = {
+  id: number;
+  name: string;
+  permissions?: Array<{ id: number; name: string; description?: string }>;
+  created_at?: string;
+  updated_at?: string;
+};
 
 export const rolesColumns: ColumnDef<Role>[] = [
   {
@@ -40,7 +46,7 @@ export const rolesColumns: ColumnDef<Role>[] = [
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <span className="font-medium">{row.original.name}</span>
-        {row.original.name === "Administrator" && (
+        {row.original.name === "Admin" && (
           <Badge variant="secondary" className="text-xs">
             System
           </Badge>
@@ -48,42 +54,42 @@ export const rolesColumns: ColumnDef<Role>[] = [
       </div>
     ),
   },
-  // {
-  //   accessorKey: "description",
-  //   header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,
-  //   cell: ({ row }) => <span className="text-muted-foreground max-w-md truncate">{row.original.description}</span>,
-  // },
   {
     accessorKey: "permissions",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Permissions" />,
-    cell: ({ row }) => <Badge variant="outline">{row.original.permissions.length} permissions</Badge>,
+    cell: ({ row }) => (
+      <Badge variant="outline">
+        {row.original.permissions?.length || 0} permissions
+      </Badge>
+    ),
     enableSorting: false,
   },
   {
-    accessorKey: "userCount",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Users" />,
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <Users className="text-muted-foreground size-4" />
-        <span className="tabular-nums">{row.original.userCount}</span>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "updatedAt",
+    accessorKey: "updated_at",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Last Updated" />,
-    cell: ({ row }) => <span className="text-muted-foreground tabular-nums">{row.original.updated_at}</span>,
+    cell: ({ row }) => {
+      const date = row.original.updated_at
+        ? new Date(row.original.updated_at).toLocaleDateString()
+        : "N/A";
+      return <span className="text-muted-foreground tabular-nums">{date}</span>;
+    },
   },
   {
     id: "actions",
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
-        <CreateRoleDialog role={row.original} />
-        {row.original.name !== "Administrator" && (
+        <CreateRoleDialog
+          role={{
+            id: row.original.id,
+            name: row.original.name,
+            permissions: row.original.permissions,
+          }}
+        />
+        {row.original.name !== "Admin" && (
           <DeleteDialog
             type="role"
-            item={{ id: row.original.id, name: row.original.name }}
-            affectedCount={row.original.userCount}
+            item={{ id: row.original.id.toString(), name: row.original.name }}
+            affectedCount={0}
           />
         )}
       </div>

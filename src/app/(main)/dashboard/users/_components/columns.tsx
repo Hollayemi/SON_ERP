@@ -15,13 +15,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getInitials } from "@/lib/utils";
+import { AssignRoleDialog } from "./assign-role-dialog";
 
 export type User = {
-  id: string;
+  id: number;
   name: string;
   email: string;
-  avatar: string;
-  role: string;
+  avatar?: string;
+  role?: string;
+  roles?: Array<{ id: number; name: string }>;
   department: string;
   status: "Active" | "Inactive";
   joinedDate: string;
@@ -92,13 +94,31 @@ export const userColumns: ColumnDef<User>[] = [
     accessorKey: "role",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Role / Position" />,
     cell: ({ row }) => {
-      const role = row.original.role;
-      const colorClass = roleColors[role] || "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400";
-      return (
-        <Badge variant="outline" className={`${colorClass} border-0 font-medium`}>
-          {role}
-        </Badge>
-      );
+      const user = row.original;
+
+      // Show assigned roles if available, otherwise show legacy role field
+      if (user.roles && user.roles.length > 0) {
+        return (
+          <div className="flex flex-wrap gap-1">
+            {user.roles.map((role) => (
+              <Badge key={role.id} variant="outline" className="font-medium">
+                {role.name}
+              </Badge>
+            ))}
+          </div>
+        );
+      }
+
+      if (user.role) {
+        const colorClass = roleColors[user.role] || "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400";
+        return (
+          <Badge variant="outline" className={`${colorClass} border-0 font-medium`}>
+            {user.role}
+          </Badge>
+        );
+      }
+
+      return <span className="text-muted-foreground text-sm">No role assigned</span>;
     },
   },
   {
@@ -129,37 +149,48 @@ export const userColumns: ColumnDef<User>[] = [
     cell: ({ row }) => {
       const user = row.original;
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-              size="icon"
-            >
-              <EllipsisVertical />
-              <span className="sr-only">Open menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
-            <Link href={`/dashboard/users/${user.id}`}>
-              <DropdownMenuItem>
-                <Eye />
-                View Details
+        <div className="flex items-center gap-2">
+          <AssignRoleDialog
+            user={{
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              roles: user.roles,
+            }}
+            triggerVariant="ghost"
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+                size="icon"
+              >
+                <EllipsisVertical />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <Link href={`/dashboard/users/${user.id}`}>
+                <DropdownMenuItem>
+                  <Eye />
+                  View Details
+                </DropdownMenuItem>
+              </Link>
+              <Link href={`/dashboard/users/${user.id}/edit`}>
+                <DropdownMenuItem>
+                  <Edit />
+                  Edit Record
+                </DropdownMenuItem>
+              </Link>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive">
+                <Trash2 />
+                Remove Staff
               </DropdownMenuItem>
-            </Link>
-            <Link href={`/dashboard/users/${user.id}/edit`}>
-              <DropdownMenuItem>
-                <Edit />
-                Edit Record
-              </DropdownMenuItem>
-            </Link>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive">
-              <Trash2 />
-              Remove Staff
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       );
     },
     enableSorting: false,

@@ -1,12 +1,18 @@
-import { Permission } from "@/types/tableColumns";
-import { CreatePermissionDialog } from "./create-permission-dialog";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 
+import { CreatePermissionDialog } from "./create-permission-dialog";
 import { DeleteDialog } from "./delete-dialog";
+
+export type Permission = {
+  id: number;
+  name: string;
+  description?: string;
+  created_at?: string;
+};
 
 export const permissionsColumns: ColumnDef<Permission>[] = [
   {
@@ -40,24 +46,46 @@ export const permissionsColumns: ColumnDef<Permission>[] = [
   {
     accessorKey: "module",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Module" />,
-    cell: ({ row }) => <Badge variant="outline">{row.original.module}</Badge>,
+    cell: ({ row }) => {
+      // Extract module from permission name (e.g., "users.create" -> "users")
+      const module = row.original.name.split(".")[0] || "Other";
+      return <Badge variant="outline" className="capitalize">{module}</Badge>;
+    },
   },
   {
     accessorKey: "description",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,
-    cell: ({ row }) => <span className="text-muted-foreground max-w-md truncate">{row.original.description}</span>,
+    cell: ({ row }) => (
+      <span className="text-muted-foreground max-w-md truncate">
+        {row.original.description || "No description"}
+      </span>
+    ),
   },
   {
-    accessorKey: "createdAt",
+    accessorKey: "created_at",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Created" />,
-    cell: ({ row }) => <span className="text-muted-foreground tabular-nums">{row.original.createdAt}</span>,
+    cell: ({ row }) => {
+      const date = row.original.created_at
+        ? new Date(row.original.created_at).toLocaleDateString()
+        : "N/A";
+      return <span className="text-muted-foreground tabular-nums">{date}</span>;
+    },
   },
   {
     id: "actions",
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
-        <CreatePermissionDialog permission={row.original} />
-        <DeleteDialog type="permission" item={{ id: row.original.id, name: row.original.name }} affectedCount={0} />
+        <CreatePermissionDialog
+          permission={{
+            id: row.original.id,
+            name: row.original.name,
+          }}
+        />
+        <DeleteDialog
+          type="permission"
+          item={{ id: row.original.id.toString(), name: row.original.name }}
+          affectedCount={0}
+        />
       </div>
     ),
     enableSorting: false,

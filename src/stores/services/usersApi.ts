@@ -1,4 +1,3 @@
-import { get } from "http";
 import { BaseResponse } from "../api/types";
 import { baseApi } from "../baseApi";
 import type { User, UserRole } from "../types";
@@ -23,7 +22,8 @@ export const usersApi = baseApi.injectEndpoints({
       query: (body) => ({
         url: "/users",
         method: "POST",
-        body,
+        data: body,
+        isFormData: true,
       }),
       invalidatesTags: [{ type: "Users", id: "LIST" }],
     }),
@@ -52,45 +52,126 @@ export const usersApi = baseApi.injectEndpoints({
       ],
     }),
 
-    updateUserRole: builder.mutation<User, { id: string; role: UserRole }>({
-      query: ({ id, role }) => ({
-        url: `/users/${id}/role`,
-        method: "PATCH",
-        body: { role },
-      }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: "Users", id },
-        { type: "Users", id: "LIST" },
-      ],
-    }),
-
-    // roles
+    // ROLES MANAGEMENT
 
     getRoles: builder.query<BaseResponse, void>({
       query: () => ({
         url: "/authorization/roles",
+        method: "GET",
       }),
-      providesTags: [{ type: "Authorization", id: "LIST" }],
+      providesTags: [{ type: "Authorization", id: "ROLES" }],
     }),
+
+    createRole: builder.mutation<BaseResponse, { name: string }>({
+      query: (body) => ({
+        url: "/authorization/roles",
+        method: "POST",
+        data: body,
+      }),
+      invalidatesTags: [{ type: "Authorization", id: "ROLES" }],
+    }),
+
+    updateRole: builder.mutation<BaseResponse, { id: number; name: string }>({
+      query: ({ id, name }) => ({
+        url: `/authorization/roles/${id}`,
+        method: "PATCH",
+        data: { name },
+      }),
+      invalidatesTags: [{ type: "Authorization", id: "ROLES" }],
+    }),
+
+    // PERMISSIONS MANAGEMENT
+
     getPermissions: builder.query<BaseResponse, void>({
       query: () => ({
         url: "/authorization/permissions",
+        method: "GET",
       }),
-      providesTags: [{ type: "Authorization", id: "LIST" }],
+      providesTags: [{ type: "Authorization", id: "PERMISSIONS" }],
+    }),
+
+    createPermission: builder.mutation<BaseResponse, { name: string }>({
+      query: (body) => ({
+        url: "/authorization/permissions",
+        method: "POST",
+        data: body,
+      }),
+      invalidatesTags: [{ type: "Authorization", id: "PERMISSIONS" }],
+    }),
+
+    updatePermission: builder.mutation<BaseResponse, { id: number; name: string }>({
+      query: ({ id, name }) => ({
+        url: `/authorization/permissions/${id}`,
+        method: "PATCH",
+        data: { name },
+      }),
+      invalidatesTags: [{ type: "Authorization", id: "PERMISSIONS" }],
+    }),
+
+    // ROLE-PERMISSION ASSIGNMENT
+
+    assignPermissions: builder.mutation<BaseResponse, { role_id: number; permissions: number[] }>({
+      query: (body) => ({
+        url: "/authorization/assign-permissions",
+        method: "POST",
+        data: body,
+      }),
+      invalidatesTags: [
+        { type: "Authorization", id: "ROLES" },
+        { type: "Authorization", id: "PERMISSIONS" },
+      ],
+    }),
+
+    revokePermissions: builder.mutation<BaseResponse, { role_id: number; permissions: number[] }>({
+      query: (body) => ({
+        url: "/authorization/revoke-permissions",
+        method: "POST",
+        data: body,
+      }),
+      invalidatesTags: [
+        { type: "Authorization", id: "ROLES" },
+        { type: "Authorization", id: "PERMISSIONS" },
+      ],
+    }),
+
+    // USER-ROLE ASSIGNMENT
+
+    assignRole: builder.mutation<BaseResponse, { user_id: number; role: number[] }>({
+      query: (body) => ({
+        url: "/authorization/assign-role",
+        method: "POST",
+        data: body,
+      }),
+      invalidatesTags: [
+        { type: "Users", id: "LIST" },
+        { type: "Authorization", id: "ROLES" },
+      ],
     }),
   }),
-
-
 });
 
 export const {
+  // Users
   useGetUsersQuery,
   useGetUserByIdQuery,
   useCreateUserMutation,
   useUpdateUserMutation,
   useToggleUserStatusMutation,
-  useUpdateUserRoleMutation,
 
+  // Roles
   useGetRolesQuery,
-  useGetPermissionsQuery
+  useCreateRoleMutation,
+  useUpdateRoleMutation,
+
+  // Permissions
+  useGetPermissionsQuery,
+  useCreatePermissionMutation,
+  useUpdatePermissionMutation,
+
+  // Role-Permission Assignment
+  useAssignPermissionsMutation,
+  useRevokePermissionsMutation,
+
+  // User-Role Assignment
+  useAssignRoleMutation,
 } = usersApi;
