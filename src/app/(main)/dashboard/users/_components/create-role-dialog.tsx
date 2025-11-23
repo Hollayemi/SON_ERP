@@ -30,7 +30,7 @@ import {
   useCreateRoleMutation,
   useUpdateRoleMutation,
   useAssignPermissionsMutation,
-  useRevokePermissionsMutation
+  useRevokePermissionsMutation,
 } from "@/stores/services/usersApi";
 
 const createRoleSchema = z.object({
@@ -94,14 +94,14 @@ export function CreateRoleDialog({ role, permissions = [], onSuccess }: CreateRo
         }
 
         // 2. Handle permissions changes
-        const oldPermissionIds = role.permissions?.map(p => p.id) || [];
+        const oldPermissionIds = role.permissions?.map((p) => p.id) || [];
         const newPermissionIds = data.permissions || [];
 
         // Permissions to add (in new but not in old)
-        const toAdd = newPermissionIds.filter(id => !oldPermissionIds.includes(id));
+        const toAdd = newPermissionIds.filter((id) => !oldPermissionIds.includes(id));
 
         // Permissions to revoke (in old but not in new)
-        const toRevoke = oldPermissionIds.filter(id => !newPermissionIds.includes(id));
+        const toRevoke = oldPermissionIds.filter((id) => !newPermissionIds.includes(id));
 
         // Assign new permissions
         if (toAdd.length > 0) {
@@ -151,16 +151,19 @@ export function CreateRoleDialog({ role, permissions = [], onSuccess }: CreateRo
   };
 
   // Group permissions by module
-  const permissionsByModule = permissions.reduce((acc, permission) => {
-    const moduleName = permission.name.split(".")[0] || "Other";
+  const permissionsByModule = permissions.reduce(
+    (acc, permission) => {
+      const moduleName = permission.name.split(".")[0] || "Other";
 
-    if (!acc[moduleName]) {
-      acc[moduleName] = [];
-    }
+      if (!acc[moduleName]) {
+        acc[moduleName] = [];
+      }
 
-    acc[moduleName].push(permission);
-    return acc;
-  }, {} as Record<string, typeof permissions>);
+      acc[moduleName].push(permission);
+      return acc;
+    },
+    {} as Record<string, typeof permissions>,
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -209,7 +212,7 @@ export function CreateRoleDialog({ role, permissions = [], onSuccess }: CreateRo
                       <FormLabel className="text-base">Permissions</FormLabel>
                       <FormDescription>Select the permissions to assign to this role</FormDescription>
                     </div>
-                    <ScrollArea className="rounded-md border p-4 max-h-[400px]">
+                    <ScrollArea className="max-h-[400px] rounded-md border p-4">
                       <div className="space-y-4">
                         {Object.entries(permissionsByModule).map(([module, modulePermissions]) => (
                           <div key={module} className="space-y-3">

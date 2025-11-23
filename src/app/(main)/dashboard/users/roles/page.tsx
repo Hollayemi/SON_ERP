@@ -24,7 +24,11 @@ export default function RolesPermissionsPage() {
   const [permissionSearchQuery, setPermissionSearchQuery] = useState("");
 
   const { data: rolesResponse, isLoading: loadingRoles, refetch: refetchRoles } = useGetRolesQuery();
-  const { data: permissionsResponse, isLoading: loadingPermissions, refetch: refetchPermissions } = useGetPermissionsQuery();
+  const {
+    data: permissionsResponse,
+    isLoading: loadingPermissions,
+    refetch: refetchPermissions,
+  } = useGetPermissionsQuery();
 
   const roles = rolesResponse?.data || [];
   const permissions = permissionsResponse?.data || [];
@@ -32,16 +36,14 @@ export default function RolesPermissionsPage() {
   // Filter roles based on search
   const filteredRoles = useMemo(() => {
     if (!roles) return [];
-    return roles.filter((role: any) =>
-      role.name.toLowerCase().includes(roleSearchQuery.toLowerCase())
-    );
+    return roles.filter((role: any) => role.name.toLowerCase().includes(roleSearchQuery.toLowerCase()));
   }, [roleSearchQuery, roles]);
 
   // Filter permissions based on search
   const filteredPermissions = useMemo(() => {
     if (!permissions) return [];
     return permissions.filter((permission: any) =>
-      permission.name.toLowerCase().includes(permissionSearchQuery.toLowerCase())
+      permission.name.toLowerCase().includes(permissionSearchQuery.toLowerCase()),
     );
   }, [permissionSearchQuery, permissions]);
 
@@ -90,10 +92,7 @@ export default function RolesPermissionsPage() {
                   <CardDescription>Create and manage roles with specific permission sets</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CreateRoleDialog
-                    permissions={permissions}
-                    onSuccess={handleRefetch}
-                  />
+                  <CreateRoleDialog permissions={permissions} onSuccess={handleRefetch} />
                 </div>
               </div>
             </CardHeader>

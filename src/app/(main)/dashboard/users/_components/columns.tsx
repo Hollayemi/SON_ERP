@@ -1,4 +1,4 @@
-import { ColumnDef } from "@tanstack/react-table";
+import type { Column, ColumnDef } from "@tanstack/react-table";
 import { EllipsisVertical, Eye, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 
@@ -16,41 +16,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getInitials } from "@/lib/utils";
 import { AssignRoleDialog } from "./assign-role-dialog";
+import { UserInfo } from "@/stores/services/types";
 
-export type User = {
-  id: number;
-  name: string;
-  email: string;
-  avatar?: string;
-  role?: string;
-  roles?: Array<{ id: number; name: string }>;
-  department: string;
-  status: "Active" | "Inactive";
-  joinedDate: string;
-  phone?: string;
-  address?: string;
-};
-
-// Color-coding roles for SON ERP staff
-const roleColors: Record<string, string> = {
-  "Director of Standards": "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-  "Chief Inspector": "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  "Procurement Officer": "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  "Finance Controller": "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400",
-  "Research Analyst": "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400",
-  "ICT Administrator": "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
-  "Public Relations Officer": "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400",
-  "Document Controller": "bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400",
-  "Quality Control Officer": "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400",
-  "Audit Supervisor": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-  "Legal Adviser": "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  "Senior Data Analyst": "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-};
-
-export const userColumns: ColumnDef<User>[] = [
+export const userColumns: ColumnDef<UserInfo>[] = [
   {
     id: "select",
-    header: ({ table }) => (
+    header: ({ table }: { table: import("@tanstack/react-table").Table<UserInfo> }) => (
       <div className="flex items-center justify-center">
         <Checkbox
           checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
@@ -73,17 +44,19 @@ export const userColumns: ColumnDef<User>[] = [
   },
   {
     accessorKey: "name",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Staff Name" />,
+    header: ({ column }: { column: Column<UserInfo, unknown> }) => <DataTableColumnHeader column={column} title="Staff Name" />,
     cell: ({ row }) => {
       const user = row.original;
+      const fullName = `${user.first_name} ${user.last_name}`;
+
       return (
         <div className="flex items-center gap-3">
           <Avatar className="size-10">
-            <AvatarImage src={user.avatar} alt={user.name} />
-            <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+            <AvatarImage src="" alt={fullName} />
+            <AvatarFallback>{getInitials(fullName)}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <span className="font-medium">{user.name}</span>
+            <span className="font-medium">{fullName}</span>
             <span className="text-muted-foreground text-sm">{user.email}</span>
           </div>
         </div>
@@ -91,44 +64,43 @@ export const userColumns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: "role",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Role / Position" />,
-    cell: ({ row }) => {
-      const user = row.original;
-
-      // Show assigned roles if available, otherwise show legacy role field
-      if (user.roles && user.roles.length > 0) {
-        return (
-          <div className="flex flex-wrap gap-1">
-            {user.roles.map((role) => (
-              <Badge key={role.id} variant="outline" className="font-medium">
-                {role.name}
-              </Badge>
-            ))}
-          </div>
-        );
-      }
-
-      if (user.role) {
-        const colorClass = roleColors[user.role] || "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400";
-        return (
-          <Badge variant="outline" className={`${colorClass} border-0 font-medium`}>
-            {user.role}
-          </Badge>
-        );
-      }
-
-      return <span className="text-muted-foreground text-sm">No role assigned</span>;
-    },
+    accessorKey: "phone_number",
+    header: ({ column }: { column: Column<UserInfo, unknown> }) => <DataTableColumnHeader column={column} title="Phone Number" />,
+    cell: ({ row }) => <span className="text-muted-foreground font-mono text-sm">{row.original.phone_number}</span>,
   },
   {
     accessorKey: "department",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Department" />,
-    cell: ({ row }) => <span className="text-muted-foreground">{row.original.department}</span>,
+    header: ({ column }: { column: Column<UserInfo, unknown> }) => <DataTableColumnHeader column={column} title="Department" />,
+    cell: ({ row }) => {
+      const department = row.original.state_office_department?.department;
+      return department ? (
+        <div className="flex flex-col">
+          <span className="font-medium">{department.name}</span>
+          <span className="text-muted-foreground text-xs">{department.code}</span>
+        </div>
+      ) : (
+        <span className="text-muted-foreground italic">No department</span>
+      );
+    },
+  },
+  {
+    accessorKey: "state_office",
+    header: ({ column }: { column: Column<UserInfo, unknown> }) => <DataTableColumnHeader column={column} title="State Office" />,
+    cell: ({ row }) => {
+      const stateOffice = row.original.state_office_department?.state_office;
+      return stateOffice ? (
+        <div className="flex flex-col">
+          <span className="font-medium">{stateOffice.name}</span>
+          <span className="text-muted-foreground text-xs">{stateOffice.state.name}</span>
+        </div>
+      ) : (
+        <span className="text-muted-foreground italic">No office</span>
+      );
+    },
   },
   {
     accessorKey: "status",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Employment Status" />,
+    header: ({ column }: { column: Column<UserInfo, unknown> }) => <DataTableColumnHeader column={column} title="Status" />,
     cell: ({ row }) => {
       const status = row.original.status;
       return (
@@ -140,9 +112,20 @@ export const userColumns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: "joinedDate",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Date Joined" />,
-    cell: ({ row }) => <span className="text-muted-foreground tabular-nums">{row.original.joinedDate}</span>,
+    accessorKey: "created_at",
+    header: ({ column }: { column: Column<UserInfo, unknown> }) => <DataTableColumnHeader column={column} title="Date Joined" />,
+    cell: ({ row }) => {
+      const date = new Date(row.original.created_at);
+      return (
+        <span className="text-muted-foreground tabular-nums text-sm">
+          {date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })}
+        </span>
+      );
+    },
   },
   {
     id: "actions",
@@ -153,9 +136,8 @@ export const userColumns: ColumnDef<User>[] = [
           <AssignRoleDialog
             user={{
               id: user.id,
-              name: user.name,
+              name: `${user.first_name} ${user.last_name}`,
               email: user.email,
-              roles: user.roles,
             }}
             triggerVariant="ghost"
           />

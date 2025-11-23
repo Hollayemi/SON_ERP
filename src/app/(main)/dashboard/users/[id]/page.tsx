@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, Shield, Building2, Trash2 } from "lucide-react";
+import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, Shield, Building2, Trash2, Loader2 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -11,21 +11,58 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getInitials } from "@/lib/utils";
-import { mockUsers } from "../_components/mock-data";
+import { useGetUserByIdQuery, useToggleUserStatusMutation } from "@/stores/services/usersApi";
+import { toast } from "sonner";
 
 export default function UserDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const userId = params?.id as string;
 
-  const user = mockUsers.find((u) => u.id === userId);
+  const { data, isLoading, error } = useGetUserByIdQuery(parseInt(userId));
+  const [toggleStatus, { isLoading: isTogglingStatus }] = useToggleUserStatusMutation();
 
-  if (!user) {
+  const user = data?.data;
+
+  const handleToggleStatus = async () => {
+    if (!user) return;
+
+    try {
+      const newStatus = user.status === "Active" ? "Inactive" : "Active";
+      await toggleStatus({ id: user.id, status: newStatus }).unwrap();
+      toast.success(`User ${newStatus === "Active" ? "activated" : "deactivated"} successfully`);
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to update user status");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <Skeleton className="h-10 w-32" />
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-start gap-6 md:flex-row">
+              <Skeleton className="size-24 rounded-full" />
+              <div className="flex-1 space-y-4">
+                <Skeleton className="h-8 w-64" />
+                <Skeleton className="h-20 w-full" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error || !user) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-semibold">User not found</h2>
-          <p className="text-muted-foreground mt-2">The user you&rsquo;re looking for doesn&rsquo;t exist.</p>
+          <p className="text-muted-foreground mt-2">The user you're looking for doesn't exist.</p>
           <Link href="/dashboard/users">
             <Button className="mt-4" variant="outline">
               <ArrowLeft />
@@ -37,19 +74,9 @@ export default function UserDetailPage() {
     );
   }
 
-  const roleColors: Record<string, string> = {
-    "Project Manager": "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-    "UI Designer": "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400",
-    "Front-End Developer": "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-    "Product Owner": "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-    "Business Analyst": "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400",
-    "Data Analyst": "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
-    "Marketing Specialist": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-    "Software Engineer": "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-    "Security Analyst": "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-    "DevOps Engineer": "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400",
-    "System Architect": "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
-  };
+  const fullName = `${user.first_name} ${user.last_name}`;
+  const department = user.state_office_department?.department;
+  const stateOffice = user.state_office_department?.state_office;
 
   return (
     <div className="flex flex-col gap-6">
@@ -67,9 +94,19 @@ export default function UserDetailPage() {
               Edit User
             </Button>
           </Link>
-          <Button variant="destructive" size="sm">
-            <Trash2 />
-            Delete User
+          <Button
+            variant={user.status === "Active" ? "outline" : "default"}
+            size="sm"
+            onClick={handleToggleStatus}
+            disabled={isTogglingStatus}
+          >
+            {isTogglingStatus ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : user.status === "Active" ? (
+              "Deactivate"
+            ) : (
+              "Activate"
+            )}
           </Button>
         </div>
       </div>
@@ -78,14 +115,14 @@ export default function UserDetailPage() {
         <CardContent className="pt-6">
           <div className="flex flex-col items-start gap-6 md:flex-row">
             <Avatar className="size-24">
-              <AvatarImage src={user.avatar || "/avatars/arhamkhnz.png"} alt={user.name} />
-              <AvatarFallback className="text-2xl">{getInitials(user.name)}</AvatarFallback>
+              <AvatarImage src="" alt={fullName} />
+              <AvatarFallback className="text-2xl">{getInitials(fullName)}</AvatarFallback>
             </Avatar>
 
             <div className="flex-1 space-y-4">
               <div>
                 <div className="mb-2 flex items-center gap-3">
-                  <h1 className="text-2xl font-semibold">{user.name}</h1>
+                  <h1 className="text-2xl font-semibold">{fullName}</h1>
                   <Badge variant={user.status === "Active" ? "default" : "secondary"}>
                     <span
                       className={`mr-1 size-2 rounded-full ${user.status === "Active" ? "bg-green-500" : "bg-gray-500"}`}
@@ -93,7 +130,11 @@ export default function UserDetailPage() {
                     {user.status}
                   </Badge>
                 </div>
-                <p className="text-muted-foreground">{user.bio}</p>
+                {user.email_verified_at && (
+                  <Badge variant="outline" className="mb-2">
+                    Email Verified
+                  </Badge>
+                )}
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
@@ -103,25 +144,30 @@ export default function UserDetailPage() {
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Phone className="text-muted-foreground size-4" />
-                  <span>{user.phone}</span>
+                  <span>{user.phone_number}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Shield className="text-muted-foreground size-4" />
-                  <Badge variant="outline" className={`${roleColors[user.role]} border-0 font-medium`}>
-                    {user.role}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Building2 className="text-muted-foreground size-4" />
-                  <span>{user.department}</span>
-                </div>
+                {department && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Building2 className="text-muted-foreground size-4" />
+                    <span>{department.name}</span>
+                  </div>
+                )}
+                {stateOffice && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="text-muted-foreground size-4" />
+                    <span>{stateOffice.name}, {stateOffice.state.name}</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="text-muted-foreground size-4" />
-                  <span>Joined {user.joinedDate}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="text-muted-foreground size-4" />
-                  <span>{user.address}</span>
+                  <span>
+                    Joined{" "}
+                    {new Date(user.created_at).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </span>
                 </div>
               </div>
             </div>
@@ -146,7 +192,7 @@ export default function UserDetailPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <p className="text-muted-foreground text-sm font-medium">Full Name</p>
-                  <p className="mt-1">{user.name}</p>
+                  <p className="mt-1">{fullName}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground text-sm font-medium">Email Address</p>
@@ -154,17 +200,7 @@ export default function UserDetailPage() {
                 </div>
                 <div>
                   <p className="text-muted-foreground text-sm font-medium">Phone Number</p>
-                  <p className="mt-1">{user.phone}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm font-medium">Department</p>
-                  <p className="mt-1">{user.department}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm font-medium">Role</p>
-                  <Badge variant="outline" className={`${roleColors[user.role]} mt-1 border-0 font-medium`}>
-                    {user.role}
-                  </Badge>
+                  <p className="mt-1">{user.phone_number}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground text-sm font-medium">Status</p>
@@ -172,10 +208,30 @@ export default function UserDetailPage() {
                     {user.status}
                   </Badge>
                 </div>
-                <div className="sm:col-span-2">
-                  <p className="text-muted-foreground text-sm font-medium">Address</p>
-                  <p className="mt-1">{user.address}</p>
-                </div>
+                {department && (
+                  <>
+                    <div>
+                      <p className="text-muted-foreground text-sm font-medium">Department</p>
+                      <p className="mt-1">{department.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground text-sm font-medium">Department Code</p>
+                      <p className="mt-1 font-mono">{department.code}</p>
+                    </div>
+                  </>
+                )}
+                {stateOffice && (
+                  <>
+                    <div className="sm:col-span-2">
+                      <p className="text-muted-foreground text-sm font-medium">State Office</p>
+                      <p className="mt-1">{stateOffice.name}</p>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <p className="text-muted-foreground text-sm font-medium">Office Address</p>
+                      <p className="mt-1">{stateOffice.address}</p>
+                    </div>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -192,18 +248,26 @@ export default function UserDetailPage() {
                   <p className="mt-1 font-mono text-sm">{user.id}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-sm font-medium">Joined Date</p>
-                  <p className="mt-1">{user.joinedDate}</p>
+                  <p className="text-muted-foreground text-sm font-medium">Email Verification</p>
+                  <p className="mt-1">
+                    {user.email_verified_at ? (
+                      <Badge variant="outline" className="bg-green-50 text-green-700">
+                        Verified on {new Date(user.email_verified_at).toLocaleDateString()}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
+                        Not Verified
+                      </Badge>
+                    )}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-sm font-medium">Last Login</p>
-                  <p className="mt-1">2 hours ago</p>
+                  <p className="text-muted-foreground text-sm font-medium">Created At</p>
+                  <p className="mt-1">{new Date(user.created_at).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-sm font-medium">Two-Factor Auth</p>
-                  <Badge variant="outline" className="mt-1">
-                    Enabled
-                  </Badge>
+                  <p className="text-muted-foreground text-sm font-medium">Last Updated</p>
+                  <p className="mt-1">{new Date(user.updated_at).toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
@@ -214,39 +278,11 @@ export default function UserDetailPage() {
           <Card className="shadow-xs">
             <CardHeader>
               <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>User&rsquo;s recent actions and activity log</CardDescription>
+              <CardDescription>User's recent actions and activity log</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-start gap-4">
-                  <div className="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-full">
-                    <Edit className="size-4" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Updated profile information</p>
-                    <p className="text-muted-foreground text-xs">2 hours ago</p>
-                  </div>
-                </div>
-                <Separator />
-                <div className="flex items-start gap-4">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-                    <Mail className="size-4" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Sent email notification</p>
-                    <p className="text-muted-foreground text-xs">5 hours ago</p>
-                  </div>
-                </div>
-                <Separator />
-                <div className="flex items-start gap-4">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                    <Shield className="size-4" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Logged in from new device</p>
-                    <p className="text-muted-foreground text-xs">Yesterday at 3:42 PM</p>
-                  </div>
-                </div>
+              <div className="text-muted-foreground text-center py-12 text-sm">
+                Activity log feature coming soon
               </div>
             </CardContent>
           </Card>
@@ -259,46 +295,8 @@ export default function UserDetailPage() {
               <CardDescription>Access rights and permissions for this user</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">View Users</p>
-                    <p className="text-muted-foreground text-sm">Can view all users in the system</p>
-                  </div>
-                  <Badge variant="default">Granted</Badge>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Create Requests</p>
-                    <p className="text-muted-foreground text-sm">Can create new requests</p>
-                  </div>
-                  <Badge variant="default">Granted</Badge>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Approve Requests</p>
-                    <p className="text-muted-foreground text-sm">Can approve or reject requests</p>
-                  </div>
-                  <Badge variant="secondary">Denied</Badge>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Manage Procurement</p>
-                    <p className="text-muted-foreground text-sm">Access to procurement module</p>
-                  </div>
-                  <Badge variant="secondary">Denied</Badge>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">View Reports</p>
-                    <p className="text-muted-foreground text-sm">Access to reports and analytics</p>
-                  </div>
-                  <Badge variant="default">Granted</Badge>
-                </div>
+              <div className="text-muted-foreground text-center py-12 text-sm">
+                Permissions management feature coming soon
               </div>
             </CardContent>
           </Card>

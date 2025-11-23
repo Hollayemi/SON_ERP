@@ -1,476 +1,298 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ColumnDef } from "@tanstack/react-table";
 import {
-  ShoppingCart,
   Package,
+  FileCheck,
+  FileText,
+  ShoppingCart,
   Users,
+  Warehouse,
+  TrendingUp,
   Clock,
-  CheckCircle2,
-  XCircle,
+  CheckCircle,
   AlertCircle,
   Plus,
-  Eye,
-  Download,
-  TrendingUp,
 } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DataTable } from "@/components/data-table/data-table";
-import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
-import { useDataTableInstance } from "@/hooks/use-data-table-instance";
+import {
+  useGetStoresQuery,
+  useGetContractorsQuery,
+  useGetStoreVerificationsQuery,
+  useGetStoreReceiveVouchersQuery,
+  useGetStockReplenishmentsQuery,
+  useGetDepartmentStockRequestsQuery,
+} from "@/stores/services/procurementApi";
 
-// Types
-type ProcurementStatus = "PENDING" | "IN_PROGRESS" | "SOURCED" | "DELIVERED" | "CANCELLED";
-
-interface ProcurementRequest {
-  id: string;
-  requestNumber: string;
-  itemName: string;
-  quantity: number;
-  department: string;
-  approvedBy: string;
-  approvedDate: string;
-  status: ProcurementStatus;
-  assignedTo?: string;
-}
-
-interface Vendor {
-  id: string;
-  name: string;
-  contactPerson: string;
-  email: string;
-  phone: string;
-  category: string;
-  rating: number;
-  totalOrders: number;
-  status: "ACTIVE" | "INACTIVE";
-}
-
-interface PurchaseOrder {
-  id: string;
-  poNumber: string;
-  requestId: string;
-  vendorName: string;
-  totalAmount: number;
-  status: "DRAFT" | "SENT" | "CONFIRMED" | "DELIVERED";
-  createdDate: string;
-  deliveryDate?: string;
-}
-
-// Mock Data
-const mockPendingRequests: ProcurementRequest[] = [
-  {
-    id: "1",
-    requestNumber: "REQ-2024-001",
-    itemName: "Desktop Computers",
-    quantity: 3,
-    department: "IT Department",
-    approvedBy: "DG SON",
-    approvedDate: "2024-01-25",
-    status: "PENDING",
-  },
-  {
-    id: "2",
-    requestNumber: "REQ-2024-005",
-    itemName: "Office Chairs",
-    quantity: 10,
-    department: "Administration",
-    approvedBy: "DG SON",
-    approvedDate: "2024-01-26",
-    status: "IN_PROGRESS",
-    assignedTo: "John Procurement",
-  },
-];
-
-const mockVendors: Vendor[] = [
-  {
-    id: "1",
-    name: "TechHub Nigeria",
-    contactPerson: "Adebayo Johnson",
-    email: "info@techhub.ng",
-    phone: "+234 801 234 5678",
-    category: "IT Equipment",
-    rating: 4.5,
-    totalOrders: 25,
-    status: "ACTIVE",
-  },
-  {
-    id: "2",
-    name: "Office Essentials Ltd",
-    contactPerson: "Mary Okafor",
-    email: "sales@officeessentials.ng",
-    phone: "+234 802 345 6789",
-    category: "Office Furniture",
-    rating: 4.2,
-    totalOrders: 18,
-    status: "ACTIVE",
-  },
-];
-
-const mockPurchaseOrders: PurchaseOrder[] = [
-  {
-    id: "1",
-    poNumber: "PO-2024-001",
-    requestId: "REQ-2024-003",
-    vendorName: "TechHub Nigeria",
-    totalAmount: 450000,
-    status: "CONFIRMED",
-    createdDate: "2024-01-20",
-    deliveryDate: "2024-02-05",
-  },
-];
-
-const statusColors: Record<ProcurementStatus, string> = {
-  PENDING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  IN_PROGRESS: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  SOURCED: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  DELIVERED: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  CANCELLED: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-};
-
-export default function ProcurementPage() {
+export default function ProcurementOverviewPage() {
   const router = useRouter();
-  const [pendingRequests] = useState<ProcurementRequest[]>(mockPendingRequests);
-  const [vendors] = useState<Vendor[]>(mockVendors);
-  const [purchaseOrders] = useState<PurchaseOrder[]>(mockPurchaseOrders);
 
-  // Columns for Pending Requests
-  const requestColumns: ColumnDef<ProcurementRequest>[] = [
-    {
-      accessorKey: "requestNumber",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Request ID" />,
-      cell: ({ row }) => <div className="font-medium">{row.getValue("requestNumber")}</div>,
-    },
-    {
-      accessorKey: "itemName",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Item" />,
-      cell: ({ row }) => <div>{row.getValue("itemName")}</div>,
-    },
-    {
-      accessorKey: "quantity",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Quantity" />,
-      cell: ({ row }) => <div className="text-center">{row.getValue("quantity")}</div>,
-    },
-    {
-      accessorKey: "department",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Department" />,
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
-      cell: ({ row }) => {
-        const status = row.getValue("status") as ProcurementStatus;
-        return (
-          <Badge variant="outline" className={statusColors[status]}>
-            {status.replace("_", " ")}
-          </Badge>
-        );
-      },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => (
-        <Button size="sm" onClick={() => router.push(`/dashboard/procurement/requests/${row.original.id}`)}>
-          <Eye className="mr-2" />
-          View
-        </Button>
-      ),
-    },
-  ];
+  // Fetch data
+  const { data: storesData, isLoading: storesLoading } = useGetStoresQuery();
+  const { data: contractorsData, isLoading: contractorsLoading } = useGetContractorsQuery();
+  const { data: svcData, isLoading: svcLoading } = useGetStoreVerificationsQuery({});
+  const { data: srvData, isLoading: srvLoading } = useGetStoreReceiveVouchersQuery({});
+  const { data: replenishmentsData, isLoading: replenishmentsLoading } = useGetStockReplenishmentsQuery({});
+  const { data: deptRequestsData, isLoading: deptRequestsLoading } = useGetDepartmentStockRequestsQuery({});
 
-  // Columns for Vendors
-  const vendorColumns: ColumnDef<Vendor>[] = [
-    {
-      accessorKey: "name",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Vendor Name" />,
-      cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
-    },
-    {
-      accessorKey: "category",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Category" />,
-    },
-    {
-      accessorKey: "contactPerson",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Contact" />,
-    },
-    {
-      accessorKey: "phone",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Phone" />,
-    },
-    {
-      accessorKey: "rating",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Rating" />,
-      cell: ({ row }) => (
-        <div className="flex items-center gap-1">
-          <span className="font-medium">{row.getValue("rating")}</span>
-          <span className="text-yellow-500">★</span>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "totalOrders",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Total Orders" />,
-      cell: ({ row }) => <div className="text-center">{row.getValue("totalOrders")}</div>,
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => router.push(`/dashboard/procurement/vendors/${row.original.id}`)}
-        >
-          View Details
-        </Button>
-      ),
-    },
-  ];
+  const stores = storesData?.data || [];
+  const contractors = contractorsData?.data || [];
+  const svcs = svcData?.data || [];
+  const srvs = srvData?.data || [];
+  const replenishments = replenishmentsData?.data || [];
+  const deptRequests = deptRequestsData?.data || [];
 
-  // Columns for Purchase Orders
-  const poColumns: ColumnDef<PurchaseOrder>[] = [
-    {
-      accessorKey: "poNumber",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="PO Number" />,
-      cell: ({ row }) => <div className="font-medium">{row.getValue("poNumber")}</div>,
-    },
-    {
-      accessorKey: "requestId",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Request ID" />,
-    },
-    {
-      accessorKey: "vendorName",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Vendor" />,
-    },
-    {
-      accessorKey: "totalAmount",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Amount" />,
-      cell: ({ row }) => <div className="font-medium">₦{(row.getValue("totalAmount") as number).toLocaleString()}</div>,
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
-      cell: ({ row }) => {
-        const status = row.getValue("status") as string;
-        return <Badge variant="outline">{status}</Badge>;
-      },
-    },
-    {
-      accessorKey: "deliveryDate",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Delivery Date" />,
-      cell: ({ row }) => {
-        const date = row.getValue("deliveryDate") as string;
-        return date ? new Date(date).toLocaleDateString() : "Not set";
-      },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => (
-        <div className="flex gap-2">
-          <Button size="sm" variant="ghost">
-            <Eye />
-          </Button>
-          <Button size="sm" variant="ghost">
-            <Download />
-          </Button>
-        </div>
-      ),
-    },
-  ];
+  // Calculate statistics
+  const stats = useMemo(() => {
+    return {
+      totalStores: stores.length,
+      activeContractors: contractors.filter((c) => c.status === "Active").length,
+      pendingVerifications: svcs.filter((s) => s.status === "pending").length,
+      pendingSRVs: srvs.filter((s) => s.status === "pending").length,
+      pendingReplenishments: replenishments.filter((r) => r.status === "pending").length,
+      pendingDeptRequests: deptRequests.filter(
+        (d) => d.store_head_status === "pending" || d.director_gsd_status === "pending"
+      ).length,
+    };
+  }, [stores, contractors, svcs, srvs, replenishments, deptRequests]);
 
-  const requestTable = useDataTableInstance({
-    data: pendingRequests,
-    columns: requestColumns,
-    getRowId: (row) => row.id,
-  });
-
-  const vendorTable = useDataTableInstance({
-    data: vendors,
-    columns: vendorColumns,
-    getRowId: (row) => row.id,
-  });
-
-  const poTable = useDataTableInstance({
-    data: purchaseOrders,
-    columns: poColumns,
-    getRowId: (row) => row.id,
-  });
+  const isLoading =
+    storesLoading ||
+    contractorsLoading ||
+    svcLoading ||
+    srvLoading ||
+    replenishmentsLoading ||
+    deptRequestsLoading;
 
   return (
     <div className="@container/main flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Procurement Overview</h1>
-          <p className="text-muted-foreground text-sm">Manage sourcing, vendors, and purchase orders</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Procurement Management</h1>
+          <p className="text-muted-foreground text-sm">Manage stores, contractors, stock and procurement workflow</p>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Pending Requests</CardTitle>
-            <Clock className="text-muted-foreground size-4" />
+            <CardTitle className="text-sm font-medium">Total Stores</CardTitle>
+            <Warehouse className="text-muted-foreground size-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pendingRequests.filter((r) => r.status === "PENDING").length}</div>
-            <p className="text-muted-foreground mt-1 text-xs">Awaiting sourcing</p>
+            <div className="text-2xl font-bold">{isLoading ? "..." : stats.totalStores}</div>
+            <p className="text-muted-foreground text-xs">Active locations</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-            <AlertCircle className="size-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{pendingRequests.filter((r) => r.status === "IN_PROGRESS").length}</div>
-            <p className="text-muted-foreground mt-1 text-xs">Being processed</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Vendors</CardTitle>
+            <CardTitle className="text-sm font-medium">Contractors</CardTitle>
             <Users className="text-muted-foreground size-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{vendors.filter((v) => v.status === "ACTIVE").length}</div>
-            <p className="text-muted-foreground mt-1 text-xs">Registered suppliers</p>
+            <div className="text-2xl font-bold">{isLoading ? "..." : stats.activeContractors}</div>
+            <p className="text-muted-foreground text-xs">Active suppliers</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active POs</CardTitle>
-            <Package className="text-muted-foreground size-4" />
+            <CardTitle className="text-sm font-medium">Pending SVC</CardTitle>
+            <FileCheck className="size-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{purchaseOrders.length}</div>
-            <p className="text-muted-foreground mt-1 text-xs">Purchase orders</p>
+            <div className="text-2xl font-bold">{isLoading ? "..." : stats.pendingVerifications}</div>
+            <p className="text-muted-foreground text-xs">Awaiting verification</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Pending SRV</CardTitle>
+            <FileText className="size-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{isLoading ? "..." : stats.pendingSRVs}</div>
+            <p className="text-muted-foreground text-xs">Awaiting completion</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Replenishments</CardTitle>
+            <ShoppingCart className="size-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{isLoading ? "..." : stats.pendingReplenishments}</div>
+            <p className="text-muted-foreground text-xs">Pending approval</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Dept Requests</CardTitle>
+            <Package className="size-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{isLoading ? "..." : stats.pendingDeptRequests}</div>
+            <p className="text-muted-foreground text-xs">Pending issuance</p>
           </CardContent>
         </Card>
       </div>
 
+      {/* Process Flow Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Procurement Process Flow</CardTitle>
+          <CardDescription>Understanding the workflow from goods receipt to payment</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="bg-primary/10 text-primary flex size-8 items-center justify-center rounded-full">
+                  <span className="text-sm font-bold">1</span>
+                </div>
+                <h3 className="font-semibold">Goods Receipt & Verification</h3>
+              </div>
+              <p className="text-muted-foreground text-sm">
+                Contractor supplies goods → Store receives & verifies → Issues Store Verification Certificate (SVC)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="bg-primary/10 text-primary flex size-8 items-center justify-center rounded-full">
+                  <span className="text-sm font-bold">2</span>
+                </div>
+                <h3 className="font-semibold">Documentation & Approval</h3>
+              </div>
+              <p className="text-muted-foreground text-sm">
+                Store issues SRV → Procurement compiles documents (Award Letter, Invoice, PO) → Sends to DG for
+                approval
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="bg-primary/10 text-primary flex size-8 items-center justify-center rounded-full">
+                  <span className="text-sm font-bold">3</span>
+                </div>
+                <h3 className="font-semibold">Payment Processing</h3>
+              </div>
+              <p className="text-muted-foreground text-sm">
+                DG approves → Documents forwarded to Finance/Account → Payment processed
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card
           className="hover:bg-accent cursor-pointer transition-colors"
-          onClick={() => router.push("/dashboard/procurement/pending")}
+          onClick={() => router.push("/dashboard/procurement/stores")}
         >
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Clock className="size-5 text-yellow-500" />
-              View Pending Requests
+              <Warehouse className="size-5 text-blue-500" />
+              Manage Stores
             </CardTitle>
-            <CardDescription>Process approved requests awaiting procurement</CardDescription>
+            <CardDescription>View and manage store locations and inventory</CardDescription>
           </CardHeader>
         </Card>
 
         <Card
           className="hover:bg-accent cursor-pointer transition-colors"
-          onClick={() => router.push("/dashboard/procurement/vendors")}
+          onClick={() => router.push("/dashboard/procurement/contractors")}
         >
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Users className="size-5 text-blue-500" />
-              Manage Vendors
+              <Users className="size-5 text-green-500" />
+              Contractors
             </CardTitle>
-            <CardDescription>View and manage your vendor database</CardDescription>
+            <CardDescription>Manage contractor database and bank details</CardDescription>
           </CardHeader>
         </Card>
 
         <Card
           className="hover:bg-accent cursor-pointer transition-colors"
-          onClick={() => router.push("/dashboard/procurement/order")}
+          onClick={() => router.push("/dashboard/procurement/verifications")}
         >
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <ShoppingCart className="size-5 text-green-500" />
-              Create Purchase Order
+              <FileCheck className="size-5 text-yellow-500" />
+              Verifications (SVC)
             </CardTitle>
-            <CardDescription>Generate new PO from approved request</CardDescription>
+            <CardDescription>Store verification certificates and approvals</CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card
+          className="hover:bg-accent cursor-pointer transition-colors"
+          onClick={() => router.push("/dashboard/procurement/vouchers")}
+        >
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="size-5 text-purple-500" />
+              Receive Vouchers (SRV)
+            </CardTitle>
+            <CardDescription>Store receive vouchers and job completion</CardDescription>
           </CardHeader>
         </Card>
       </div>
 
-      {/* Tabs for detailed views */}
-      <Tabs defaultValue="pending" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="pending">Pending Requests</TabsTrigger>
-          <TabsTrigger value="vendors">Vendors</TabsTrigger>
-          <TabsTrigger value="purchase-orders">Purchase Orders</TabsTrigger>
-        </TabsList>
-
-        {/* Pending Requests Tab */}
-        <TabsContent value="pending" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Pending Procurement</CardTitle>
-                  <CardDescription>Requests awaiting sourcing</CardDescription>
+      {/* Additional Processes */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Stock Management</CardTitle>
+          <CardDescription>Handle stock replenishment and inter-department requests</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Button
+              variant="outline"
+              className="h-auto justify-start p-4"
+              onClick={() => router.push("/dashboard/procurement/replenishments")}
+            >
+              <div className="flex flex-col items-start gap-1 text-left">
+                <div className="flex items-center gap-2">
+                  <ShoppingCart className="size-5 text-purple-500" />
+                  <span className="font-semibold">Stock Replenishment</span>
                 </div>
-                <Button onClick={() => router.push("/dashboard/procurement/pending")}>View All</Button>
+                <span className="text-muted-foreground text-sm">
+                  Store Head → Director GSD → DG → Procurement
+                </span>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-hidden rounded-lg border">
-                <DataTable table={requestTable} columns={requestColumns} />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </Button>
 
-        {/* Vendors Tab */}
-        <TabsContent value="vendors" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Vendor Database</CardTitle>
-                  <CardDescription>Approved suppliers and their details</CardDescription>
+            <Button
+              variant="outline"
+              className="h-auto justify-start p-4"
+              onClick={() => router.push("/dashboard/procurement/department-requests")}
+            >
+              <div className="flex flex-col items-start gap-1 text-left">
+                <div className="flex items-center gap-2">
+                  <Package className="size-5 text-green-500" />
+                  <span className="font-semibold">Department Requests</span>
                 </div>
-                <Button onClick={() => router.push("/dashboard/procurement/vendor/new")}>
-                  <Plus className="mr-2" />
-                  Add Vendor
-                </Button>
+                <span className="text-muted-foreground text-sm">
+                  Department → Store Head → Director GSD → Issuance
+                </span>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-hidden rounded-lg border">
-                <DataTable table={vendorTable} columns={vendorColumns} />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Purchase Orders Tab */}
-        <TabsContent value="purchase-orders" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Purchase Orders</CardTitle>
-                  <CardDescription>All generated purchase orders</CardDescription>
-                </div>
-                <Button onClick={() => router.push("/dashboard/procurement/purchase-orders")}>View All</Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-hidden rounded-lg border">
-                <DataTable table={poTable} columns={poColumns} />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -1,5 +1,4 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { Users } from "lucide-react";
 
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 import { CreateRoleDialog } from "./create-role-dialog";
 import { DeleteDialog } from "./delete-dialog";
+import { ManageRolePermissionsDialog } from "./manage-role-permissions-dialog";
 
 export type Role = {
   id: number;
@@ -57,20 +57,30 @@ export const rolesColumns: ColumnDef<Role>[] = [
   {
     accessorKey: "permissions",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Permissions" />,
-    cell: ({ row }) => (
-      <Badge variant="outline">
-        {row.original.permissions?.length || 0} permissions
-      </Badge>
-    ),
+    cell: ({ row }) => {
+      const role = row.original;
+      return (
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="hover:bg-secondary cursor-pointer transition-colors">
+            {role.permissions?.length || 0} permissions
+          </Badge>
+          <ManageRolePermissionsDialog
+            role={{
+              id: role.id,
+              name: role.name,
+              permissions: role.permissions,
+            }}
+          />
+        </div>
+      );
+    },
     enableSorting: false,
   },
   {
     accessorKey: "updated_at",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Last Updated" />,
     cell: ({ row }) => {
-      const date = row.original.updated_at
-        ? new Date(row.original.updated_at).toLocaleDateString()
-        : "N/A";
+      const date = row.original.updated_at ? new Date(row.original.updated_at).toLocaleDateString() : "N/A";
       return <span className="text-muted-foreground tabular-nums">{date}</span>;
     },
   },

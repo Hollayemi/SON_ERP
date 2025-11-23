@@ -48,26 +48,26 @@ export const permissionsColumns: ColumnDef<Permission>[] = [
     header: ({ column }) => <DataTableColumnHeader column={column} title="Module" />,
     cell: ({ row }) => {
       // Extract module from permission name (e.g., "users.create" -> "users")
-      const module = row.original.name.split(".")[0] || "Other";
-      return <Badge variant="outline" className="capitalize">{module}</Badge>;
+      const mod = row.original.name.split(".")[0] || "Other";
+      return (
+        <Badge variant="outline" className="capitalize">
+          {mod}
+        </Badge>
+      );
     },
   },
   {
     accessorKey: "description",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,
     cell: ({ row }) => (
-      <span className="text-muted-foreground max-w-md truncate">
-        {row.original.description || "No description"}
-      </span>
+      <span className="text-muted-foreground max-w-md truncate">{row.original.description || "No description"}</span>
     ),
   },
   {
     accessorKey: "created_at",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Created" />,
     cell: ({ row }) => {
-      const date = row.original.created_at
-        ? new Date(row.original.created_at).toLocaleDateString()
-        : "N/A";
+      const date = row.original.created_at ? new Date(row.original.created_at).toLocaleDateString() : "N/A";
       return <span className="text-muted-foreground tabular-nums">{date}</span>;
     },
   },

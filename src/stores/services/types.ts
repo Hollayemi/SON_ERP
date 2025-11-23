@@ -1,6 +1,117 @@
 import { BaseResponse } from "../api/types";
 import { User, UserRole } from "../types";
 
+
+// Types for User Management
+export interface UserInfo {
+  id: number;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
+  email: string;
+  role: string | null;
+  email_verified_at: string | null;
+  status: "Active" | "Inactive";
+  state_office_department: {
+    id: number;
+    status: string;
+    notes: string;
+    state_office: {
+      id: number;
+      name: string;
+      code: string;
+      description: string;
+      state_id: number;
+      zone_id: number | null;
+      status: string;
+      office_manager_id: number | null;
+      address: string;
+      phone: string;
+      email: string;
+      website: string | null;
+      state: {
+        id: number;
+        name: string;
+        created_at: string;
+        updated_at: string;
+      };
+      created_at: string;
+      updated_at: string;
+      deleted_at: string | null;
+    };
+    department: {
+      id: number;
+      name: string;
+      code: string;
+      description: string;
+      status: string;
+      head_of_department_id: number | null;
+      created_at: string;
+      updated_at: string;
+      deleted_at: string | null;
+    };
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaginationMeta {
+  current_page: number;
+  first_page_url: string;
+  from: number;
+  last_page: number;
+  last_page_url: string;
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number;
+  total: number;
+  can_load_more: boolean;
+}
+
+export interface UsersListResponse {
+  message: string;
+  data: {
+    pagination_meta: PaginationMeta;
+    data: User[];
+  };
+}
+
+
+export interface CreateUserInput {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  state_office_department_id: number;
+  user_access: string;
+  password?: string;
+}
+
+export interface UpdateUserInput {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone_number?: string;
+  state_office_department_id?: number;
+  user_access?: string;
+}
+
+export interface GetUsersParams {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  status?: "Active" | "Inactive";
+  department_id?: number;
+  state_office_id?: number;
+}
+
+
+
 export interface ApprovalAction {
   requestId: string;
   action: "APPROVE" | "REJECT" | "RETURN";
@@ -33,17 +144,30 @@ export interface CreateUserInput {
   first_name: string;
   last_name: string;
   email: string;
-  password: string;
-  department_id: string;
-  employee_id: string;
-  image: any;
+  phone_number: string;
+  state_office_department_id: number;
   user_access: string;
-  phone?: string;
+  password?: string;
 }
 
-export interface UpdateUserInput extends Partial<Omit<CreateUserInput, "password">> {
-  id: string;
+export interface UpdateUserInput {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone_number?: string;
+  state_office_department_id?: number;
+  user_access?: string;
 }
+
+export interface GetUsersParams {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  status?: "Active" | "Inactive";
+  department_id?: number;
+  state_office_id?: number;
+}
+
 
 export interface ProcessPaymentInput {
   requestId: string;

@@ -84,9 +84,7 @@ export function CreatePermissionDialog({ permission, onSuccess }: CreatePermissi
     };
   };
 
-  const defaultValues = permission
-    ? parsePermissionName(permission.name)
-    : { module: "", action: "" };
+  const defaultValues = permission ? parsePermissionName(permission.name) : { module: "", action: "" };
 
   const form = useForm<PermissionFormData>({
     resolver: zodResolver(createPermissionSchema),
@@ -175,9 +173,7 @@ export function CreatePermissionDialog({ permission, onSuccess }: CreatePermissi
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>
-                    The system module this permission applies to
-                  </FormDescription>
+                  <FormDescription>The system module this permission applies to</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -203,9 +199,7 @@ export function CreatePermissionDialog({ permission, onSuccess }: CreatePermissi
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>
-                    The action that will be allowed with this permission
-                  </FormDescription>
+                  <FormDescription>The action that will be allowed with this permission</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -213,9 +207,9 @@ export function CreatePermissionDialog({ permission, onSuccess }: CreatePermissi
 
             {/* Preview of the permission name */}
             {form.watch("module") && form.watch("action") && (
-              <div className="rounded-md border bg-muted/50 p-3">
-                <p className="text-xs text-muted-foreground mb-1">Permission Name Preview:</p>
-                <code className="text-sm font-mono font-semibold">
+              <div className="bg-muted/50 rounded-md border p-3">
+                <p className="text-muted-foreground mb-1 text-xs">Permission Name Preview:</p>
+                <code className="font-mono text-sm font-semibold">
                   {form.watch("module")}.{form.watch("action")}
                 </code>
               </div>

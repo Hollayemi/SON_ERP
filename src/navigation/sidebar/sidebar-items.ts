@@ -16,6 +16,7 @@ import {
   History,
   FolderOpen,
   LucideIcon,
+  SaveOff,
 } from "lucide-react";
 
 export interface NavSubItem {
@@ -121,14 +122,23 @@ export const sidebarItems: NavGroup[] = [
         icon: History,
       },
       {
-        title: "Authorization",
+        title: "User Management",
         url: "/dashboard/users",
         icon: Users,
         subItems: [
           { title: "All Users", url: "/dashboard/users" },
-          { title: "Roles & Permissions", url: "/dashboard/users/roles" },
           { title: "Add New User", url: "/dashboard/users/new" },
         ],
+      },
+      {
+        title: "Authorization",
+        url: "/dashboard/users/roles",
+        icon: SaveOff,
+        // subItems: [
+        //   { title: "All Users", url: "/dashboard/users" },
+        //   { title: "Roles & Permissions", url: "/dashboard/users/roles" },
+        //   { title: "Add New User", url: "/dashboard/users/new" },
+        // ],
       },
       {
         title: "Notifications",
