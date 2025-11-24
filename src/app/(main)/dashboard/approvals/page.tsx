@@ -82,7 +82,7 @@ export default function ApprovalsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Approvals Overview</h1>
+          <h1 className="tracking-tight_ text-2xl font-semibold">Approvals Overview</h1>
           <p className="text-muted-foreground text-sm">Manage and track all approval workflows</p>
         </div>
       </div>

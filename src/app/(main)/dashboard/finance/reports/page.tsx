@@ -96,7 +96,7 @@ export default function ExpenditureReportsPage() {
     <div className="@container/main flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Expenditure Reports</h1>
+          <h1 className="tracking-tight_ text-2xl font-semibold">Expenditure Reports</h1>
           <p className="text-muted-foreground text-sm">Comprehensive spending analysis and financial reports</p>
         </div>
       </div>

@@ -44,7 +44,9 @@ export const userColumns: ColumnDef<UserInfo>[] = [
   },
   {
     accessorKey: "name",
-    header: ({ column }: { column: Column<UserInfo, unknown> }) => <DataTableColumnHeader column={column} title="Staff Name" />,
+    header: ({ column }: { column: Column<UserInfo, unknown> }) => (
+      <DataTableColumnHeader column={column} title="Staff Name" />
+    ),
     cell: ({ row }) => {
       const user = row.original;
       const fullName = `${user.first_name} ${user.last_name}`;
@@ -65,12 +67,16 @@ export const userColumns: ColumnDef<UserInfo>[] = [
   },
   {
     accessorKey: "phone_number",
-    header: ({ column }: { column: Column<UserInfo, unknown> }) => <DataTableColumnHeader column={column} title="Phone Number" />,
+    header: ({ column }: { column: Column<UserInfo, unknown> }) => (
+      <DataTableColumnHeader column={column} title="Phone Number" />
+    ),
     cell: ({ row }) => <span className="text-muted-foreground font-mono text-sm">{row.original.phone_number}</span>,
   },
   {
     accessorKey: "department",
-    header: ({ column }: { column: Column<UserInfo, unknown> }) => <DataTableColumnHeader column={column} title="Department" />,
+    header: ({ column }: { column: Column<UserInfo, unknown> }) => (
+      <DataTableColumnHeader column={column} title="Department" />
+    ),
     cell: ({ row }) => {
       const department = row.original.state_office_department?.department;
       return department ? (
@@ -85,7 +91,9 @@ export const userColumns: ColumnDef<UserInfo>[] = [
   },
   {
     accessorKey: "state_office",
-    header: ({ column }: { column: Column<UserInfo, unknown> }) => <DataTableColumnHeader column={column} title="State Office" />,
+    header: ({ column }: { column: Column<UserInfo, unknown> }) => (
+      <DataTableColumnHeader column={column} title="State Office" />
+    ),
     cell: ({ row }) => {
       const stateOffice = row.original.state_office_department?.state_office;
       return stateOffice ? (
@@ -100,7 +108,9 @@ export const userColumns: ColumnDef<UserInfo>[] = [
   },
   {
     accessorKey: "status",
-    header: ({ column }: { column: Column<UserInfo, unknown> }) => <DataTableColumnHeader column={column} title="Status" />,
+    header: ({ column }: { column: Column<UserInfo, unknown> }) => (
+      <DataTableColumnHeader column={column} title="Status" />
+    ),
     cell: ({ row }) => {
       const status = row.original.status;
       return (
@@ -113,11 +123,13 @@ export const userColumns: ColumnDef<UserInfo>[] = [
   },
   {
     accessorKey: "created_at",
-    header: ({ column }: { column: Column<UserInfo, unknown> }) => <DataTableColumnHeader column={column} title="Date Joined" />,
+    header: ({ column }: { column: Column<UserInfo, unknown> }) => (
+      <DataTableColumnHeader column={column} title="Date Joined" />
+    ),
     cell: ({ row }) => {
       const date = new Date(row.original.created_at);
       return (
-        <span className="text-muted-foreground tabular-nums text-sm">
+        <span className="text-muted-foreground text-sm tabular-nums">
           {date.toLocaleDateString("en-US", {
             year: "numeric",
             month: "short",

@@ -49,7 +49,7 @@ export default function MyRequestsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">My Requests</h1>
+          <h1 className="tracking-tight_ text-2xl font-semibold">My Requests</h1>
           <p className="text-muted-foreground text-sm">View and track all your submitted requests.</p>
         </div>
         <Button onClick={() => router.push("/dashboard/requests/new")}>

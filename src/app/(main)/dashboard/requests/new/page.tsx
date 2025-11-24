@@ -114,7 +114,7 @@ export default function CreateNewRequestPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Create New Request</h1>
+          <h1 className="tracking-tight_ text-2xl font-semibold">Create New Request</h1>
           <p className="text-muted-foreground text-sm">
             Submit a new request for items or services required by your department.
           </p>

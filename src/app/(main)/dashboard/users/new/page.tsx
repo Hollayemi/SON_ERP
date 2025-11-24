@@ -81,7 +81,7 @@ export default function CreateUserPage() {
           <Card className="shadow-xs">
             <CardHeader>
               <CardTitle>Basic Information</CardTitle>
-              <CardDescription>Add the user's personal details and contact information.</CardDescription>
+              <CardDescription>Add the user&lsquo;s personal details and contact information.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-6 sm:grid-cols-2">
@@ -159,7 +159,7 @@ export default function CreateUserPage() {
                               <LoaderIcon className="size-4 animate-spin" />
                             </div>
                           ) : (
-                              departments?.data?.data?.map((dept: any) => (
+                            departments?.data?.data?.map((dept: any) => (
                               <SelectItem key={dept.id} value={dept.id.toString()}>
                                 {dept.name}
                               </SelectItem>
@@ -199,7 +199,6 @@ export default function CreateUserPage() {
               </div>
             </CardContent>
           </Card>
-
 
           <div className="flex items-center justify-end gap-4">
             <Link href="/dashboard/users">

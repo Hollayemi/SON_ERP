@@ -80,7 +80,7 @@ export default function PendingProcurementPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Pending Procurement</h1>
+          <h1 className="tracking-tight_ text-2xl font-semibold">Pending Procurement</h1>
           <p className="text-muted-foreground text-sm">Manage and process approved requests awaiting procurement</p>
         </div>
       </div>

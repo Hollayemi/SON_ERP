@@ -79,10 +79,10 @@ export const sidebarItems: NavGroup[] = [
         url: "/dashboard/procurement",
         icon: ShoppingCart,
         subItems: [
-          { title: "Pending Procurement", url: "/dashboard/procurement/pending" },
-          { title: "Vendor Database", url: "/dashboard/procurement/vendor" },
-          { title: "Purchase Orders", url: "/dashboard/procurement/purchase-orders" },
-          { title: "Procurement History", url: "/dashboard/procurement/history" },
+          { title: "Stores", url: "/dashboard/procurement/stores" },
+          { title: "Contractors", url: "/dashboard/procurement/contractors" },
+          // { title: "Purchase Orders", url: "/dashboard/procurement/purchase-orders" },
+          // { title: "Procurement History", url: "/dashboard/procurement/history" },
         ],
       },
       {

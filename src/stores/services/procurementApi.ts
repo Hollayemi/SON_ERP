@@ -131,9 +131,7 @@ export const procurementApi = baseApi.injectEndpoints({
         url: `/procurement/contractors/${contractorId}/bank-accounts`,
         method: "GET",
       }),
-      providesTags: (result, error, contractorId) => [
-        { type: "Vendors", id: `BANK_ACCOUNTS_${contractorId}` },
-      ],
+      providesTags: (result, error, contractorId) => [{ type: "Vendors", id: `BANK_ACCOUNTS_${contractorId}` }],
     }),
 
     createBankAccount: builder.mutation<
@@ -213,7 +211,6 @@ export const procurementApi = baseApi.injectEndpoints({
       ],
     }),
 
-    
     // ==================== STOCK REPLENISHMENT ====================
     getStockReplenishments: builder.query<BaseResponse<StockReplenishment[]>, { status?: string }>({
       query: (params) => ({

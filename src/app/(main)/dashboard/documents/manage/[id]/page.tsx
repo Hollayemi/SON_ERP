@@ -119,7 +119,7 @@ export default function DocumentDetailPage() {
           <ArrowLeft className="size-4" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Document Details</h1>
+          <h1 className="tracking-tight_ text-2xl font-semibold">Document Details</h1>
           <p className="text-muted-foreground text-sm">View and manage document information</p>
         </div>
         <div className="flex gap-2">

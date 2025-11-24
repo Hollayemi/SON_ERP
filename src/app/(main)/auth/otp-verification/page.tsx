@@ -66,7 +66,7 @@ export default function OTPVerificationPage() {
         <div className="w-full max-w-md space-y-10 py-24 lg:py-32">
           <div className="space-y-4 text-center">
             <Image src={APP_CONFIG.icon} alt="SON_LOGO" className="block: mx-auto lg:hidden" width={70} height={70} />
-            <div className="text-2xl font-bold tracking-tight text-black">Enter Verification Code</div>
+            <div className="tracking-tight_ text-2xl font-bold text-black">Enter Verification Code</div>
             <div className="text-muted-foreground mx-auto max-w-xl text-sm">
               We&rsquo;ve sent a 6-digit verification code to your email address. Please enter it below.
             </div>

@@ -66,7 +66,7 @@ export default function ProcurementHistoryPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Procurement History</h1>
+          <h1 className="tracking-tight_ text-2xl font-semibold">Procurement History</h1>
           <p className="text-muted-foreground text-sm">Track all sourced items and delivery status</p>
         </div>
         <Button variant="outline">

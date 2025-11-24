@@ -56,25 +56,20 @@ export default function ProcurementOverviewPage() {
       pendingSRVs: srvs.filter((s) => s.status === "pending").length,
       pendingReplenishments: replenishments.filter((r) => r.status === "pending").length,
       pendingDeptRequests: deptRequests.filter(
-        (d) => d.store_head_status === "pending" || d.director_gsd_status === "pending"
+        (d) => d.store_head_status === "pending" || d.director_gsd_status === "pending",
       ).length,
     };
   }, [stores, contractors, svcs, srvs, replenishments, deptRequests]);
 
   const isLoading =
-    storesLoading ||
-    contractorsLoading ||
-    svcLoading ||
-    srvLoading ||
-    replenishmentsLoading ||
-    deptRequestsLoading;
+    storesLoading || contractorsLoading || svcLoading || srvLoading || replenishmentsLoading || deptRequestsLoading;
 
   return (
     <div className="@container/main flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Procurement Management</h1>
+          <h1 className="tracking-tight_ text-2xl font-semibold">Procurement Management</h1>
           <p className="text-muted-foreground text-sm">Manage stores, contractors, stock and procurement workflow</p>
         </div>
       </div>
@@ -176,8 +171,7 @@ export default function ProcurementOverviewPage() {
                 <h3 className="font-semibold">Documentation & Approval</h3>
               </div>
               <p className="text-muted-foreground text-sm">
-                Store issues SRV → Procurement compiles documents (Award Letter, Invoice, PO) → Sends to DG for
-                approval
+                Store issues SRV → Procurement compiles documents (Award Letter, Invoice, PO) → Sends to DG for approval
               </p>
             </div>
 
@@ -269,9 +263,7 @@ export default function ProcurementOverviewPage() {
                   <ShoppingCart className="size-5 text-purple-500" />
                   <span className="font-semibold">Stock Replenishment</span>
                 </div>
-                <span className="text-muted-foreground text-sm">
-                  Store Head → Director GSD → DG → Procurement
-                </span>
+                <span className="text-muted-foreground text-sm">Store Head → Director GSD → DG → Procurement</span>
               </div>
             </Button>
 
@@ -285,9 +277,7 @@ export default function ProcurementOverviewPage() {
                   <Package className="size-5 text-green-500" />
                   <span className="font-semibold">Department Requests</span>
                 </div>
-                <span className="text-muted-foreground text-sm">
-                  Department → Store Head → Director GSD → Issuance
-                </span>
+                <span className="text-muted-foreground text-sm">Department → Store Head → Director GSD → Issuance</span>
               </div>
             </Button>
           </div>

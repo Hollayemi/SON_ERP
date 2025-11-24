@@ -76,7 +76,7 @@ export default function PendingPaymentsPage() {
     <div className="@container/main flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Pending Payments</h1>
+          <h1 className="tracking-tight_ text-2xl font-semibold">Pending Payments</h1>
           <p className="text-muted-foreground text-sm">Process payments for procured items</p>
         </div>
         <Button variant="outline">

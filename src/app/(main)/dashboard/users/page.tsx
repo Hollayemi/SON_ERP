@@ -43,7 +43,7 @@ export default function AllUsersPage() {
         user.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.phone_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.state_office_department?.department?.name.toLowerCase().includes(searchQuery.toLowerCase())
+        user.state_office_department?.department?.name.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [users, searchQuery]);
 
@@ -67,7 +67,7 @@ export default function AllUsersPage() {
           <CardDescription>
             Manage users, roles, and permissions in your organization. Total: {paginationMeta?.total || 0} users
           </CardDescription>
-        
+
           <CardAction>
             <div className="flex items-center gap-2">
               <DataTableViewOptions table={table} />

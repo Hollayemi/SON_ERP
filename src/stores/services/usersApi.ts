@@ -3,7 +3,6 @@ import { baseApi } from "../baseApi";
 import type { User, UserRole } from "../types";
 import { UserInfo, CreateUserInput, GetUsersParams, UpdateUserInput, UsersListResponse } from "./types";
 
-
 export const usersApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // GET /users - List all users with pagination
@@ -15,10 +14,7 @@ export const usersApi = baseApi.injectEndpoints({
       }),
       providesTags: (result) =>
         result
-          ? [
-            ...result.data.data.map(({ id }) => ({ type: "Users" as const, id })),
-            { type: "Users", id: "LIST" },
-          ]
+          ? [...result.data.data.map(({ id }) => ({ type: "Users" as const, id })), { type: "Users", id: "LIST" }]
           : [{ type: "Users", id: "LIST" }],
     }),
 
@@ -168,8 +164,6 @@ export const usersApi = baseApi.injectEndpoints({
       ],
     }),
 
-
-
     getUserProfile: builder.query<BaseResponse, void>({
       query: () => ({
         url: "/user-profile",
@@ -177,7 +171,6 @@ export const usersApi = baseApi.injectEndpoints({
       }),
       providesTags: [{ type: "Users", id: "PROFILE" }],
     }),
-  
   }),
 });
 

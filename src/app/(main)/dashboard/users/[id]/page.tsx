@@ -62,7 +62,7 @@ export default function UserDetailPage() {
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-semibold">User not found</h2>
-          <p className="text-muted-foreground mt-2">The user you're looking for doesn't exist.</p>
+          <p className="text-muted-foreground mt-2">The user you&lsquo;re looking for doesn&lsquo;t exist.</p>
           <Link href="/dashboard/users">
             <Button className="mt-4" variant="outline">
               <ArrowLeft />
@@ -155,7 +155,9 @@ export default function UserDetailPage() {
                 {stateOffice && (
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="text-muted-foreground size-4" />
-                    <span>{stateOffice.name}, {stateOffice.state.name}</span>
+                    <span>
+                      {stateOffice.name}, {stateOffice.state.name}
+                    </span>
                   </div>
                 )}
                 <div className="flex items-center gap-2 text-sm">
@@ -278,12 +280,10 @@ export default function UserDetailPage() {
           <Card className="shadow-xs">
             <CardHeader>
               <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>User's recent actions and activity log</CardDescription>
+              <CardDescription>User&lsquo;s recent actions and activity log</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-muted-foreground text-center py-12 text-sm">
-                Activity log feature coming soon
-              </div>
+              <div className="text-muted-foreground py-12 text-center text-sm">Activity log feature coming soon</div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -295,7 +295,7 @@ export default function UserDetailPage() {
               <CardDescription>Access rights and permissions for this user</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-muted-foreground text-center py-12 text-sm">
+              <div className="text-muted-foreground py-12 text-center text-sm">
                 Permissions management feature coming soon
               </div>
             </CardContent>

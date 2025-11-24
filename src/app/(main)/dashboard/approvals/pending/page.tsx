@@ -172,7 +172,7 @@ export default function PendingApprovalsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Pending Approvals</h1>
+          <h1 className="tracking-tight_ text-2xl font-semibold">Pending Approvals</h1>
           <p className="text-muted-foreground text-sm">Review and process requests awaiting your approval</p>
         </div>
       </div>

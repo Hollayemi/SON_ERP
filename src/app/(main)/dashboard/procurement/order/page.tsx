@@ -110,7 +110,7 @@ export default function CreatePurchaseOrderPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Create Purchase Order</h1>
+          <h1 className="tracking-tight_ text-2xl font-semibold">Create Purchase Order</h1>
           <p className="text-muted-foreground text-sm">Generate a new purchase order from approved request</p>
         </div>
       </div>

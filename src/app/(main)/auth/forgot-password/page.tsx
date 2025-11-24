@@ -80,7 +80,7 @@ export default function ForgotPasswordPage() {
               height={70}
               priority
             />
-            <div className="text-2xl font-bold tracking-tight">
+            <div className="tracking-tight_ text-2xl font-bold">
               {emailSent ? "Check Your Email" : "Forgot Password"}
             </div>
             <div className="text-muted-foreground mx-auto max-w-xl text-sm">

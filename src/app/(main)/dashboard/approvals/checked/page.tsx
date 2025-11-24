@@ -27,7 +27,7 @@ export default function CheckedRequestsPage() {
     <div className="@container/main flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Checked Requests</h1>
+          <h1 className="tracking-tight_ text-2xl font-semibold">Checked Requests</h1>
           <p className="text-muted-foreground text-sm">Requests verified by checker, ready for director review</p>
         </div>
       </div>

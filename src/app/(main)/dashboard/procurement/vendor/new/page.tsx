@@ -134,7 +134,7 @@ export default function AddVendorPage() {
     <div className="@container/main flex flex-col gap-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Add New Vendor</h1>
+        <h1 className="tracking-tight_ text-2xl font-semibold">Add New Vendor</h1>
         <p className="text-muted-foreground text-sm">Register a new supplier in the vendor database</p>
       </div>
 

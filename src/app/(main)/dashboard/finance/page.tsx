@@ -84,7 +84,7 @@ export default function FinanceMainPage() {
     <div className="@container/main flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Finance & Admin Overview</h1>
+          <h1 className="tracking-tight_ text-2xl font-semibold">Finance & Admin Overview</h1>
           <p className="text-muted-foreground text-sm">Monitor payments and budget allocation</p>
         </div>
       </div>

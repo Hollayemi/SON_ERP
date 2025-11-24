@@ -213,7 +213,7 @@ export default function VendorsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Vendor Database</h1>
+          <h1 className="tracking-tight_ text-2xl font-semibold">Vendor Database</h1>
           <p className="text-muted-foreground text-sm">Manage your approved suppliers and their information</p>
         </div>
         <Button onClick={() => router.push("/dashboard/procurement/vendor/new")}>

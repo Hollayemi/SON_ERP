@@ -184,7 +184,7 @@ export default function ApprovalDetailPage() {
           <ArrowLeft className="size-4" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Review Request</h1>
+          <h1 className="tracking-tight_ text-2xl font-semibold">Review Request</h1>
           <p className="text-muted-foreground text-sm">Evaluate and process this approval request</p>
         </div>
         <Badge variant="outline" className={statusColors[request.status as keyof typeof statusColors]}>

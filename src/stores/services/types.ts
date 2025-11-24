@@ -1,7 +1,6 @@
 import { BaseResponse } from "../api/types";
 import { User, UserRole } from "../types";
 
-
 // Types for User Management
 export interface UserInfo {
   id: number;
@@ -81,7 +80,6 @@ export interface UsersListResponse {
   };
 }
 
-
 export interface CreateUserInput {
   first_name: string;
   last_name: string;
@@ -109,8 +107,6 @@ export interface GetUsersParams {
   department_id?: number;
   state_office_id?: number;
 }
-
-
 
 export interface ApprovalAction {
   requestId: string;
@@ -167,7 +163,6 @@ export interface GetUsersParams {
   department_id?: number;
   state_office_id?: number;
 }
-
 
 export interface ProcessPaymentInput {
   requestId: string;
