@@ -23,10 +23,10 @@ import { Badge } from "@/components/ui/badge";
 import {
   useGetStoresQuery,
   useGetContractorsQuery,
-  useGetStoreVerificationsQuery,
-  useGetStoreReceiveVouchersQuery,
-  useGetStockReplenishmentsQuery,
-  useGetDepartmentStockRequestsQuery,
+  // useGetStoreVerificationsQuery,
+  // useGetStoreReceiveVouchersQuery,
+  // useGetStockReplenishmentsQuery,
+  // useGetDepartmentStockRequestsQuery,
 } from "@/stores/services/procurementApi";
 
 export default function ProcurementOverviewPage() {
@@ -35,10 +35,15 @@ export default function ProcurementOverviewPage() {
   // Fetch data
   const { data: storesData, isLoading: storesLoading } = useGetStoresQuery();
   const { data: contractorsData, isLoading: contractorsLoading } = useGetContractorsQuery();
-  const { data: svcData, isLoading: svcLoading } = useGetStoreVerificationsQuery({});
-  const { data: srvData, isLoading: srvLoading } = useGetStoreReceiveVouchersQuery({});
-  const { data: replenishmentsData, isLoading: replenishmentsLoading } = useGetStockReplenishmentsQuery({});
-  const { data: deptRequestsData, isLoading: deptRequestsLoading } = useGetDepartmentStockRequestsQuery({});
+  // const { data: svcData, isLoading: svcLoading } = useGetStoreVerificationsQuery({});
+  // const { data: srvData, isLoading: srvLoading } = useGetStoreReceiveVouchersQuery({});
+  // const { data: replenishmentsData, isLoading: replenishmentsLoading } = useGetStockReplenishmentsQuery({});
+  // const { data: deptRequestsData, isLoading: deptRequestsLoading } = useGetDepartmentStockRequestsQuery({});
+
+  const svcData = { data: null } as any,
+    srvData = { data: null } as any,
+    replenishmentsData = { data: null } as any,
+    deptRequestsData = { data: null } as any;
 
   const stores = storesData?.data || [];
   const contractors = contractorsData?.data || [];
@@ -52,17 +57,16 @@ export default function ProcurementOverviewPage() {
     return {
       totalStores: stores.length,
       activeContractors: contractors.filter((c) => c.status === "Active").length,
-      pendingVerifications: svcs.filter((s) => s.status === "pending").length,
-      pendingSRVs: srvs.filter((s) => s.status === "pending").length,
-      pendingReplenishments: replenishments.filter((r) => r.status === "pending").length,
+      pendingVerifications: svcs.filter((s: any) => s.status === "pending").length,
+      pendingSRVs: srvs.filter((s: any) => s.status === "pending").length,
+      pendingReplenishments: replenishments.filter((r: any) => r.status === "pending").length,
       pendingDeptRequests: deptRequests.filter(
-        (d) => d.store_head_status === "pending" || d.director_gsd_status === "pending",
+        (d: any) => d.store_head_status === "pending" || d.director_gsd_status === "pending",
       ).length,
     };
   }, [stores, contractors, svcs, srvs, replenishments, deptRequests]);
 
-  const isLoading =
-    storesLoading || contractorsLoading || svcLoading || srvLoading || replenishmentsLoading || deptRequestsLoading;
+  const isLoading = storesLoading || contractorsLoading; // || svcLoading || srvLoading || replenishmentsLoading || deptRequestsLoading;
 
   return (
     <div className="@container/main flex flex-col gap-6">
@@ -74,7 +78,6 @@ export default function ProcurementOverviewPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
